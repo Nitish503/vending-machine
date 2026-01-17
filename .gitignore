@@ -1,0 +1,11 @@
+# dependencies
+node_modules/
+
+# database
+*.db
+
+# environment
+.env
+
+# OS
+.DS_Store
