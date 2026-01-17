@@ -5,32 +5,29 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+// Middleware
 app.use(express.json());
 
-// ✅ Serve frontend files
-app.use("/frontend", express.static(path.join(__dirname, "frontend")));
+// ✅ Serve frontend folder
+app.use(express.static(path.join(__dirname, "../frontend")));
 
-// ✅ Root → Frontend
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "index.html"));
-});
-
-// ✅ SQLite DB
+// Database
 const db = new sqlite3.Database("./payments.db", (err) => {
   if (err) console.error(err.message);
   else console.log("Connected to SQLite database");
 });
 
+// Create table
 db.run(`
   CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     item TEXT,
     amount INTEGER,
-    time DATETIME DEFAULT CURRENT_TIMESTAMP
+    time TEXT
   )
 `);
 
-// ✅ Payment API
+// API: make payment
 app.post("/api/pay", (req, res) => {
   const { item, amount } = req.body;
 
@@ -38,28 +35,30 @@ app.post("/api/pay", (req, res) => {
     return res.status(400).json({ success: false });
   }
 
+  const time = new Date().toLocaleString();
+
   db.run(
-    "INSERT INTO payments (item, amount) VALUES (?, ?)",
-    [item, amount],
-    (err) => {
-      if (err) {
-        res.status(500).json({ success: false });
-      } else {
-        res.json({ success: true });
-      }
+    "INSERT INTO payments (item, amount, time) VALUES (?, ?, ?)",
+    [item, amount, time],
+    () => {
+      res.json({ success: true });
     }
   );
 });
 
-// ✅ Payment History
+// API: get payments
 app.get("/api/payments", (req, res) => {
-  db.all("SELECT * FROM payments ORDER BY time DESC", [], (err, rows) => {
-    if (err) res.status(500).json([]);
-    else res.json(rows);
+  db.all("SELECT * FROM payments ORDER BY id DESC", [], (err, rows) => {
+    if (err) return res.status(500).json([]);
+    res.json(rows);
   });
 });
 
-// ✅ Start server
+// Root fallback (IMPORTANT)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
+
 app.listen(PORT, () => {
-  console.log(`Backend running on port ${PORT}`);
+  console.log("Backend running on port", PORT);
 });

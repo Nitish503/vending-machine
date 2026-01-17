@@ -1,50 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
   <title>Vending Machine</title>
   <style>
-    body {
-      font-family: Arial;
-      background: #f2f2f2;
-      display: flex;
-      justify-content: center;
-      margin-top: 50px;
-    }
-    .box {
-      background: white;
-      padding: 20px;
-      width: 350px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #log {
-      background: #eee;
-      padding: 10px;
-      height: 120px;
-      overflow: auto;
-    }
+    body { font-family: Arial; text-align: center; background: #f4f4f4; }
+    button { padding: 15px 30px; margin: 10px; font-size: 16px; }
+    #output { background: white; padding: 10px; margin-top: 20px; }
   </style>
 </head>
 <body>
 
-<div class="box">
-  <h2>🧃 Vending Machine</h2>
+  <h1>🥤 Vending Machine</h1>
 
-  <button onclick="buy('Chips', 20)">Buy Chips (₹20)</button>
-  <button onclick="buy('Cold Drink', 40)">Buy Cold Drink (₹40)</button>
+  <button onclick="buy('Chips',20)">Buy Chips (₹20)</button>
+  <button onclick="buy('Cold Drink',40)">Buy Cold Drink (₹40)</button>
 
-  <h3>Payments</h3>
-  <pre id="log">No payments yet</pre>
-</div>
+  <h3>Payment History</h3>
+  <pre id="output">[]</pre>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
