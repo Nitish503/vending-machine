@@ -3,69 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <title>Vending Machine</title>
-
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 20px;
+      font-family: Arial;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      margin-top: 50px;
     }
-
-    h1 {
-      text-align: center;
-    }
-
-    .container {
-      max-width: 500px;
-      margin: auto;
+    .box {
       background: white;
       padding: 20px;
+      width: 350px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-
     button {
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
+      padding: 12px;
+      margin: 10px 0;
       font-size: 16px;
       cursor: pointer;
     }
-
-    .buy {
-      background: #4caf50;
-      color: white;
-      border: none;
-    }
-
-    .load {
-      background: #2196f3;
-      color: white;
-      border: none;
-    }
-
-    pre {
+    #log {
       background: #eee;
       padding: 10px;
-      margin-top: 15px;
-      max-height: 300px;
+      height: 120px;
       overflow: auto;
     }
   </style>
 </head>
 <body>
 
-  <h1>🧃 Vending Machine</h1>
+<div class="box">
+  <h2>🧃 Vending Machine</h2>
 
-  <div class="container">
-    <button class="buy" onclick="buyChips()">Buy Chips (₹20)</button>
-    <button class="buy" onclick="buyColdDrink()">Buy Cold Drink (₹40)</button>
-    <button class="load" onclick="loadPayments()">Load Payments</button>
+  <button onclick="buy('Chips', 20)">Buy Chips (₹20)</button>
+  <button onclick="buy('Cold Drink', 40)">Buy Cold Drink (₹40)</button>
 
-    <h3>Payment History</h3>
-    <pre id="output">No payments yet</pre>
-  </div>
+  <h3>Payments</h3>
+  <pre id="log">No payments yet</pre>
+</div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

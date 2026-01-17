@@ -1,37 +1,45 @@
-async function makePayment(item, amount) {
+const API_BASE = ""; 
+// empty = same domain (Render compatible)
+
+async function buy(item, amount) {
   try {
-    const res = await fetch("/api/payments", {
+    const res = await fetch(${API_BASE}/api/pay, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ item, amount })
     });
 
-    if (!res.ok) throw new Error("Request failed");
+    const data = await res.json();
 
-    alert(`Payment successful for ${item}`);
-    loadPayments();
+    if (data.success) {
+      alert("Payment successful ✅");
+      loadPayments();
+    } else {
+      alert("Payment failed ❌");
+    }
   } catch (err) {
-    console.error(err);
-    alert("Payment failed");
+    alert("Server error ❌");
   }
-}
-
-function buyChips() {
-  makePayment("Chips", 20);
-}
-
-function buyColdDrink() {
-  makePayment("Cold Drink", 40);
 }
 
 async function loadPayments() {
   try {
-    const res = await fetch("/api/payments");
+    const res = await fetch(`${API_BASE}/api/payments`);
     const data = await res.json();
-    document.getElementById("output").textContent =
-      JSON.stringify(data, null, 2);
+
+    const log = document.getElementById("log");
+    if (data.length === 0) {
+      log.textContent = "No payments yet";
+      return;
+    }
+
+    log.textContent = data
+      .map(p => `${p.item} - ₹${p.amount} (${p.time})`)
+      .join("\n");
   } catch {
-    document.getElementById("output").textContent =
-      "Failed to load payments";
+    document.getElementById("log").textContent = "Error loading payments";
   }
 }
+
+// auto load
+loadPayments();
