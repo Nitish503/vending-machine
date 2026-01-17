@@ -1,54 +1,68 @@
 const express = require("express");
-const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 10000;
 
-// Serve frontend
+// Middleware
+app.use(express.json());
 app.use(express.static("public"));
 
 // Database
-const db = new sqlite3.Database("payments.db");
+const db = new sqlite3.Database("payments.db", (err) => {
+  if (err) console.error(err.message);
+  else console.log("Connected to SQLite database");
+});
 
+// Create table if not exists
 db.run(`
   CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     item TEXT,
     amount INTEGER,
-    time DATETIME DEFAULT CURRENT_TIMESTAMP
+    time TEXT
   )
 `);
 
-// API: payment
+// Payment API
 app.post("/api/pay", (req, res) => {
   const { item, amount } = req.body;
-
-  if (!item || !amount) {
-    return res.status(400).json({ success: false });
-  }
+  const time = new Date().toLocaleString();
 
   db.run(
-    "INSERT INTO payments (item, amount) VALUES (?, ?)",
-    [item, amount],
+    "INSERT INTO payments (item, amount, time) VALUES (?, ?, ?)",
+    [item, amount, time],
     (err) => {
       if (err) {
-        return res.status(500).json({ success: false });
+        res.status(500).json({ success: false });
+      } else {
+        res.json({ success: true });
       }
-      res.json({ success: true });
     }
   );
 });
 
-// Root route
+// 🔐 ADMIN API (NEW)
+app.get("/api/admin/payments", (req, res) => {
+  db.all("SELECT * FROM payments ORDER BY id DESC", [], (err, rows) => {
+    if (err) {
+      res.status(500).json([]);
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+// Routes
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// REQUIRED FOR RENDER
-const PORT = process.env.PORT || 10000;
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
