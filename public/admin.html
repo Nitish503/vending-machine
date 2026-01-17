@@ -3,15 +3,15 @@
 <head>
   <title>Admin Panel</title>
   <style>
-    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; background: #fff; }
+    body { font-family: Arial; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; }
     th, td { padding: 10px; border: 1px solid #ccc; }
-    th { background: #333; color: white; }
+    th { background: #222; color: white; }
   </style>
 </head>
 <body>
 
-<h2>📊 Admin Panel – Payments</h2>
+<h2>Admin Panel – Payments</h2>
 
 <table>
   <thead>
@@ -22,9 +22,25 @@
       <th>Time</th>
     </tr>
   </thead>
-  <tbody id="payments"></tbody>
+  <tbody id="data"></tbody>
 </table>
 
-<script src="admin.js"></script>
+<script>
+fetch("/api/admin/payments")
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.getElementById("data");
+    data.forEach(p => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.id}</td>
+          <td>${p.item}</td>
+          <td>₹${p.amount}</td>
+          <td>${p.time}</td>
+        </tr>`;
+    });
+  });
+</script>
+
 </body>
 </html>
