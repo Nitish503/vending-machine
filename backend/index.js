@@ -7,58 +7,46 @@ const PORT = process.env.PORT || 10000;
 
 // Middleware
 app.use(express.json());
-
-// ✅ Serve frontend folder
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Database
-const db = new sqlite3.Database("./payments.db", (err) => {
-  if (err) console.error(err.message);
-  else console.log("Connected to SQLite database");
+const db = new sqlite3.Database("vending.db", () => {
+  console.log("Connected to SQLite database");
 });
 
-// Create table
 db.run(`
   CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     item TEXT,
     amount INTEGER,
-    time TEXT
+    status TEXT,
+    time DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
 
-// API: make payment
+// API route
 app.post("/api/pay", (req, res) => {
   const { item, amount } = req.body;
 
-  if (!item || !amount) {
-    return res.status(400).json({ success: false });
-  }
-
-  const time = new Date().toLocaleString();
-
   db.run(
-    "INSERT INTO payments (item, amount, time) VALUES (?, ?, ?)",
-    [item, amount, time],
+    "INSERT INTO payments (item, amount, status) VALUES (?, ?, ?)",
+    [item, amount, "SUCCESS"],
     () => {
       res.json({ success: true });
     }
   );
 });
 
-// API: get payments
-app.get("/api/payments", (req, res) => {
-  db.all("SELECT * FROM payments ORDER BY id DESC", [], (err, rows) => {
-    if (err) return res.status(500).json([]);
-    res.json(rows);
-  });
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
 });
 
-// Root fallback (IMPORTANT)
+// Serve frontend
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(PORT, () => {
-  console.log("Backend running on port", PORT);
+  console.log(`Backend running on port ${PORT}`);
 });
