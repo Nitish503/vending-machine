@@ -2,45 +2,22 @@
 <html>
 <head>
   <title>Admin Panel</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px; border: 1px solid #ccc; }
-    th { background: #222; color: white; }
-  </style>
 </head>
 <body>
+  <h2>Admin Panel – Payments</h2>
+  <button onclick="logout()">Logout</button>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Item</th>
+        <th>Amount</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
 
-<h2>Admin Panel – Payments</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Item</th>
-      <th>Amount (₹)</th>
-      <th>Time</th>
-    </tr>
-  </thead>
-  <tbody id="data"></tbody>
-</table>
-
-<script>
-fetch("/api/admin/payments")
-  .then(res => res.json())
-  .then(data => {
-    const tbody = document.getElementById("data");
-    data.forEach(p => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${p.id}</td>
-          <td>${p.item}</td>
-          <td>₹${p.amount}</td>
-          <td>${p.time}</td>
-        </tr>`;
-    });
-  });
-</script>
-
+  <script src="admin.js"></script>
 </body>
 </html>
