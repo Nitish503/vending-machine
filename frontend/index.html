@@ -1,23 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Vending Machine</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .buy {
+      background: #4caf50;
+      color: white;
+      border: none;
+    }
+
+    .load {
+      background: #2196f3;
+      color: white;
+      border: none;
+    }
+
+    pre {
+      background: #eee;
+      padding: 10px;
+      margin-top: 15px;
+      max-height: 300px;
+      overflow: auto;
+    }
+  </style>
 </head>
 <body>
 
   <h1>🧃 Vending Machine</h1>
 
-  <button onclick="pay('Chips', 20)">Buy Chips (₹20)</button>
-  <br><br>
-  <button onclick="pay('Cold Drink', 40)">Buy Cold Drink (₹40)</button>
+  <div class="container">
+    <button class="buy" onclick="buyChips()">Buy Chips (₹20)</button>
+    <button class="buy" onclick="buyColdDrink()">Buy Cold Drink (₹40)</button>
+    <button class="load" onclick="loadPayments()">Load Payments</button>
 
-  <hr>
-
-  <h2>Payment History</h2>
-  <button onclick="loadPayments()">Load Payments</button>
-
-  <pre id="output"></pre>
+    <h3>Payment History</h3>
+    <pre id="output">No payments yet</pre>
+  </div>
 
   <script src="script.js"></script>
 </body>

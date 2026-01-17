@@ -1,33 +1,37 @@
-const API_URL = "http://localhost:3000";
-
-// Make payment
-async function pay(item, price) {
+async function makePayment(item, amount) {
   try {
-    const res = await fetch(${API_URL}/api/pay, {
+    const res = await fetch("/api/payments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ item, price })
+      body: JSON.stringify({ item, amount })
     });
 
-    const data = await res.json();
-    alert("Payment successful");
-    loadPayments();
+    if (!res.ok) throw new Error("Request failed");
 
+    alert(`Payment successful for ${item}`);
+    loadPayments();
   } catch (err) {
+    console.error(err);
     alert("Payment failed");
   }
 }
 
-// Load payments
-async function loadPayments() {
-  const output = document.getElementById("output");
-  output.textContent = "Loading...";
+function buyChips() {
+  makePayment("Chips", 20);
+}
 
+function buyColdDrink() {
+  makePayment("Cold Drink", 40);
+}
+
+async function loadPayments() {
   try {
-    const res = await fetch(${API_URL}/api/payments);
+    const res = await fetch("/api/payments");
     const data = await res.json();
-    output.textContent = JSON.stringify(data, null, 2);
-  } catch (err) {
-    output.textContent = "Error loading payments";
+    document.getElementById("output").textContent =
+      JSON.stringify(data, null, 2);
+  } catch {
+    document.getElementById("output").textContent =
+      "Failed to load payments";
   }
 }
