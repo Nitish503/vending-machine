@@ -1,26 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Vending Machine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h2>🥤 Vending Machine</h2>
-  <button onclick="toggleMenu()">☰</button>
+
+<!-- HEADER -->
+<header class="header">
+    <div class="logo">
+        🥤 <span>Vending Machine</span>
+    </div>
+
+    <div class="menu-btn" onclick="toggleMenu()">
+        ☰
+    </div>
+
+    <div class="menu" id="menu">
+        <a href="/customer.html">Customer Page</a>
+        <a href="/login.html">Admin Page</a>
+    </div>
 </header>
 
-<div id="menu" class="menu">
-  <a href="/customer">Customer Page</a>
-  <a href="/login.html">Admin Page</a>
-</div>
+<!-- MAIN -->
+<main class="main">
+    <h1>Welcome 👋</h1>
+    <p>Select an option from the menu to continue</p>
 
-<h1>Welcome</h1>
-<p>Select an option from the menu</p>
+    <div class="cards">
+        <div class="card" onclick="location.href='/customer.html'">
+            🛒
+            <h3>Customer</h3>
+            <p>Buy items from vending machine</p>
+        </div>
+
+        <div class="card" onclick="location.href='/login.html'">
+            🔐
+            <h3>Admin</h3>
+            <p>View payments & manage data</p>
+        </div>
+    </div>
+</main>
 
 <script>
 function toggleMenu() {
-  document.getElementById("menu").classList.toggle("show");
+    document.getElementById("menu").classList.toggle("show");
 }
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById("menu");
+    const btn = document.querySelector('.menu-btn');
+    if (!menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove("show");
+    }
+});
 </script>
+
 </body>
 </html>
