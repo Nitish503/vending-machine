@@ -1,24 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vending Machine</title>
-  <style>
-    body { font-family: Arial; text-align: center; }
-    button {
-      padding: 12px;
-      margin: 10px;
-      font-size: 16px;
-      background: green;
-      color: white;
-      border: none;
-      border-radius: 6px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🥤 Vending Machine</h1>
-  <button onclick="buy('Chips', 20)">Buy Chips (₹20)</button>
-  <button onclick="buy('Cold Drink', 40)">Buy Cold Drink (₹40)</button>
+
+  <!-- HEADER -->
+  <header class="topbar">
+    <div class="logo">
+      🥤 <span>Vending Machine</span>
+    </div>
+
+    <div class="menu-container">
+      <button class="menu-btn" onclick="toggleMenu()">☰</button>
+      <div class="menu-dropdown" id="menu">
+        <a href="/">Customer Page</a>
+        <a href="/admin">Admin Page</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+    <h1>Welcome 👋</h1>
+    <p>Select an option from the menu to continue.</p>
+  </main>
 
   <script src="script.js"></script>
 </body>
