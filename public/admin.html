@@ -1,13 +1,30 @@
-<h2>Admin Panel – Payments</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Payments</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Admin Panel – Payments</h1>
+
 <a href="/logout">Logout</a>
 
-<table border="1">
-  <thead>
-    <tr>
-      <th>ID</th><th>Item</th><th>Amount</th><th>Time</th>
-    </tr>
-  </thead>
-  <tbody id="rows"></tbody>
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Amount (₹)</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody id="payments-body">
+        <!-- Auto-filled by admin.js -->
+    </tbody>
 </table>
 
 <script src="admin.js"></script>
+</body>
+</html>
