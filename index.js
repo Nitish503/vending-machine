@@ -1,18 +1,18 @@
 const express = require("express");
-const path = require("path");
 const session = require("express-session");
 const sqlite3 = require("sqlite3").verbose();
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 🔐 Admin credentials
-const ADMIN_USER = process.env.ADMIN_USER || "admin";
-const ADMIN_PASS = process.env.ADMIN_PASS || "1234";
+// Admin credentials (from environment variables)
+const ADMIN_USER = process.env.ADMIN_USER;
+const ADMIN_PASS = process.env.ADMIN_PASS;
 
 // Middleware
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.use(
   session({
@@ -23,12 +23,10 @@ app.use(
 );
 
 // Static files
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static("public"));
 
 // Database
-const db = new sqlite3.Database("./payments.db");
-
-// Create table if not exists
+const db = new sqlite3.Database("payments.db");
 db.run(`
   CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,44 +36,39 @@ db.run(`
   )
 `);
 
-// 🔐 Auth middleware
-function requireLogin(req, res, next) {
-  if (req.session.loggedIn) return next();
-  res.redirect("/admin/login");
-}
+// ROUTES
 
-// ===== LOGIN =====
-app.get("/admin/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin-login.html"));
+app.get("/", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "index.html"))
+);
+
+app.get("/customer", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "customer.html"))
+);
+
+app.get("/admin", (req, res) => {
+  if (req.session.admin)
+    res.sendFile(path.join(__dirname, "public", "admin.html"));
+  else
+    res.sendFile(path.join(__dirname, "public", "admin-login.html"));
 });
 
 app.post("/admin/login", (req, res) => {
   const { username, password } = req.body;
   if (username === ADMIN_USER && password === ADMIN_PASS) {
-    req.session.loggedIn = true;
+    req.session.admin = true;
     res.redirect("/admin");
   } else {
-    res.send("❌ Invalid username or password");
+    res.redirect("/admin?error=1");
   }
 });
 
 app.get("/admin/logout", (req, res) => {
-  req.session.destroy(() => res.redirect("/admin/login"));
+  req.session.destroy(() => res.redirect("/"));
 });
 
-// ===== ADMIN =====
-app.get("/admin", requireLogin, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
+// API
 
-app.get("/api/payments", requireLogin, (req, res) => {
-  db.all("SELECT * FROM payments ORDER BY id DESC", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
-});
-
-// ===== BUY API =====
 app.post("/buy", (req, res) => {
   const { item, amount } = req.body;
   db.run(
@@ -85,6 +78,13 @@ app.post("/buy", (req, res) => {
   );
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.get("/admin/payments", (req, res) => {
+  if (!req.session.admin) return res.status(401).json([]);
+  db.all("SELECT * FROM payments ORDER BY id DESC", (err, rows) =>
+    res.json(rows)
+  );
 });
+
+app.listen(PORT, () =>
+  console.log("Server running on port", PORT)
+);

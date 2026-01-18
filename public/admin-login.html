@@ -2,30 +2,23 @@
 <html>
 <head>
   <title>Admin Login</title>
-  <style>
-    body { background: #f4f4f4; font-family: Arial; }
-    .box {
-      width: 300px;
-      margin: 120px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 6px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-    }
-  </style>
 </head>
-<body>
-  <div class="box">
-    <h2>Admin Login</h2>
-    <form method="POST" action="/admin/login">
-      <input name="username" placeholder="Username" required />
-      <input name="password" type="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-    </form>
-  </div>
+<body style="font-family: Arial; text-align:center; margin-top:60px;">
+
+<h2>Admin Login</h2>
+
+<form method="POST" action="/admin/login">
+  <input name="username" placeholder="Username" required><br><br>
+  <input name="password" type="password" placeholder="Password" required><br><br>
+  <button type="submit">Login</button>
+</form>
+
+<p style="color:red">
+  <script>
+    if (location.search.includes("error"))
+      document.write("Invalid username or password");
+  </script>
+</p>
+
 </body>
 </html>

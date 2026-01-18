@@ -2,41 +2,39 @@
 <html>
 <head>
   <title>Admin Panel</title>
-  <style>
-    table { width: 90%; margin: auto; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #222; color: white; }
-  </style>
 </head>
-<body>
-  <h1>Admin Panel – Payments</h1>
-  <a href="/admin/logout">Logout</a>
+<body style="font-family:Arial;">
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Item</th>
-        <th>Amount (₹)</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody id="data"></tbody>
-  </table>
+<h2>Admin Panel – Payments</h2>
+<a href="/admin/logout">Logout</a>
 
-  <script>
-    fetch("/api/payments")
-      .then(res => res.json())
-      .then(rows => {
-        document.getElementById("data").innerHTML = rows.map(r =>
-          `<tr>
-            <td>${r.id}</td>
-            <td>${r.item}</td>
-            <td>${r.amount}</td>
-            <td>${r.time}</td>
-          </tr>`
-        ).join("");
-      });
-  </script>
+<table border="1" cellpadding="8" cellspacing="0">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Item</th>
+      <th>Amount (₹)</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<script>
+fetch("/admin/payments")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("rows").innerHTML =
+      data.map(p =>
+        `<tr>
+          <td>${p.id}</td>
+          <td>${p.item}</td>
+          <td>₹${p.amount}</td>
+          <td>${p.time}</td>
+        </tr>`
+      ).join("");
+  });
+</script>
+
 </body>
 </html>

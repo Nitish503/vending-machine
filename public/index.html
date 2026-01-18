@@ -1,34 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vending Machine</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: Arial; margin: 0; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+    .menu { cursor: pointer; font-size: 24px; }
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 15px;
+      top: 60px;
+      background: white;
+      border: 1px solid #ccc;
+    }
+    .dropdown a {
+      display: block;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: black;
+    }
+    .dropdown a:hover { background: #f0f0f0; }
+    main { text-align: center; margin-top: 60px; }
+  </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="topbar">
-    <div class="logo">
-      🥤 <span>Vending Machine</span>
-    </div>
+<header>
+  <h2>🥤 Vending Machine</h2>
+  <div class="menu" onclick="toggle()">☰</div>
+</header>
 
-    <div class="menu-container">
-      <button class="menu-btn" onclick="toggleMenu()">☰</button>
-      <div class="menu-dropdown" id="menu">
-        <a href="/">Customer Page</a>
-        <a href="/admin">Admin Page</a>
-      </div>
-    </div>
-  </header>
+<div class="dropdown" id="menu">
+  <a href="/customer">Customer Page</a>
+  <a href="/admin">Admin Page</a>
+</div>
 
-  <!-- MAIN CONTENT -->
-  <main class="content">
-    <h1>Welcome 👋</h1>
-    <p>Select an option from the menu to continue.</p>
-  </main>
+<main>
+  <h1>Welcome</h1>
+  <p>Select an option from the menu to continue.</p>
+</main>
 
-  <script src="script.js"></script>
+<script>
+function toggle() {
+  const m = document.getElementById("menu");
+  m.style.display = m.style.display === "block" ? "none" : "block";
+}
+</script>
+
 </body>
 </html>
