@@ -1,8 +1,13 @@
-fetch('/api/payments')
+fetch('/api/payments', { credentials: 'include' })
   .then(res => res.json())
   .then(data => {
     const table = document.getElementById('data');
     table.innerHTML = '';
+
+    if (data.length === 0) {
+      table.innerHTML = '<tr><td colspan="4">No records</td></tr>';
+      return;
+    }
 
     data.forEach(p => {
       const row = document.createElement('tr');

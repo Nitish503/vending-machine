@@ -2,51 +2,14 @@
 <html>
 <head>
   <title>Vending Machine</title>
-  <style>
-    body { font-family: Arial; margin: 0; }
-    header {
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #ccc;
-    }
-    .menu {
-      position: relative;
-    }
-    .menu-content {
-      display: none;
-      position: absolute;
-      right: 0;
-      background: white;
-      border: 1px solid #ccc;
-    }
-    .menu-content a {
-      display: block;
-      padding: 10px;
-      text-decoration: none;
-      color: black;
-    }
-    .menu:hover .menu-content {
-      display: block;
-    }
-  </style>
 </head>
 <body>
 
-<header>
-  <h2>🥤 Vending Machine</h2>
-  <div class="menu">
-    ☰
-    <div class="menu-content">
-      <a href="/customer">Customer Page</a>
-      <a href="/admin">Admin Page</a>
-    </div>
-  </div>
-</header>
+<h2>🥤 Vending Machine</h2>
 
-<h2 style="text-align:center">Welcome</h2>
-<p style="text-align:center">Select an option from the menu</p>
+<button onclick="location.href='/customer'">Customer Page</button>
+<br><br>
+<button onclick="location.href='/admin'">Admin Page</button>
 
 </body>
 </html>

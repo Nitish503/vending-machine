@@ -4,12 +4,22 @@
   <title>Admin Login</title>
 </head>
 <body>
-  <h2>Admin Login</h2>
 
-  <form method="POST" action="/admin/login">
-    <input name="username" placeholder="Username" required /><br><br>
-    <input name="password" type="password" placeholder="Password" required /><br><br>
-    <button>Login</button>
-  </form>
+<h2>Admin Login</h2>
+
+<form action="/admin/login" method="POST">
+  <input name="username" placeholder="Username" required><br><br>
+  <input name="password" type="password" placeholder="Password" required><br><br>
+  <button>Login</button>
+</form>
+
+<p style="color:red">
+  <script>
+    if (new URLSearchParams(window.location.search).get('error')) {
+      document.write('❌ Invalid username or password');
+    }
+  </script>
+</p>
+
 </body>
 </html>

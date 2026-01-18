@@ -4,19 +4,30 @@
   <title>Customer</title>
 </head>
 <body>
-  <h2>Vending Machine</h2>
 
-  <form action="/buy/chips" method="POST">
-    <button>Buy Chips (₹20)</button>
-  </form>
+<h2>Vending Machine</h2>
 
-  <br>
+<p id="msg" style="color:green;"></p>
 
-  <form action="/buy/drink" method="POST">
-    <button>Buy Cold Drink (₹40)</button>
-  </form>
+<form action="/buy/chips" method="POST">
+  <button>Buy Chips (₹20)</button>
+</form>
 
-  <br>
-  <a href="/">⬅ Back</a>
+<br>
+
+<form action="/buy/drink" method="POST">
+  <button>Buy Cold Drink (₹40)</button>
+</form>
+
+<br><br>
+<a href="/">⬅ Back</a>
+
+<script>
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('success')) {
+    document.getElementById('msg').innerText = '✅ Payment successful';
+  }
+</script>
+
 </body>
 </html>
