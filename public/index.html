@@ -5,54 +5,48 @@
   <style>
     body { font-family: Arial; margin: 0; }
     header {
+      padding: 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #ccc;
     }
-    .menu { cursor: pointer; font-size: 24px; }
-    .dropdown {
+    .menu {
+      position: relative;
+    }
+    .menu-content {
       display: none;
       position: absolute;
-      right: 15px;
-      top: 60px;
+      right: 0;
       background: white;
       border: 1px solid #ccc;
     }
-    .dropdown a {
+    .menu-content a {
       display: block;
-      padding: 10px 20px;
+      padding: 10px;
       text-decoration: none;
       color: black;
     }
-    .dropdown a:hover { background: #f0f0f0; }
-    main { text-align: center; margin-top: 60px; }
+    .menu:hover .menu-content {
+      display: block;
+    }
   </style>
 </head>
 <body>
 
 <header>
   <h2>🥤 Vending Machine</h2>
-  <div class="menu" onclick="toggle()">☰</div>
+  <div class="menu">
+    ☰
+    <div class="menu-content">
+      <a href="/customer">Customer Page</a>
+      <a href="/admin">Admin Page</a>
+    </div>
+  </div>
 </header>
 
-<div class="dropdown" id="menu">
-  <a href="/customer">Customer Page</a>
-  <a href="/admin">Admin Page</a>
-</div>
-
-<main>
-  <h1>Welcome</h1>
-  <p>Select an option from the menu to continue.</p>
-</main>
-
-<script>
-function toggle() {
-  const m = document.getElementById("menu");
-  m.style.display = m.style.display === "block" ? "none" : "block";
-}
-</script>
+<h2 style="text-align:center">Welcome</h2>
+<p style="text-align:center">Select an option from the menu</p>
 
 </body>
 </html>

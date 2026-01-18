@@ -3,12 +3,12 @@
 <head>
   <title>Admin Panel</title>
 </head>
-<body style="font-family:Arial;">
+<body>
 
 <h2>Admin Panel – Payments</h2>
 <a href="/admin/logout">Logout</a>
 
-<table border="1" cellpadding="8" cellspacing="0">
+<table border="1" cellpadding="5">
   <thead>
     <tr>
       <th>ID</th>
@@ -17,24 +17,9 @@
       <th>Time</th>
     </tr>
   </thead>
-  <tbody id="rows"></tbody>
+  <tbody id="data"></tbody>
 </table>
 
-<script>
-fetch("/admin/payments")
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("rows").innerHTML =
-      data.map(p =>
-        `<tr>
-          <td>${p.id}</td>
-          <td>${p.item}</td>
-          <td>₹${p.amount}</td>
-          <td>${p.time}</td>
-        </tr>`
-      ).join("");
-  });
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
