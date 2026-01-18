@@ -1,15 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Vending Machine</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<header>
+  <h2>🥤 Vending Machine</h2>
+  <button onclick="toggleMenu()">☰</button>
+</header>
 
-<h2>🥤 Vending Machine</h2>
+<div id="menu" class="menu">
+  <a href="/customer">Customer Page</a>
+  <a href="/login.html">Admin Page</a>
+</div>
 
-<button onclick="location.href='/customer'">Customer Page</button>
-<br><br>
-<button onclick="location.href='/admin'">Admin Page</button>
+<h1>Welcome</h1>
+<p>Select an option from the menu</p>
 
+<script>
+function toggleMenu() {
+  document.getElementById("menu").classList.toggle("show");
+}
+</script>
 </body>
 </html>

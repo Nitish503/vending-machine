@@ -1,107 +1,110 @@
-const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const session = require('express-session');
-const path = require('path');
+import express from "express";
+import session from "express-session";
+import pg from "pg";
+import path from "path";
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+const __dirname = path.resolve();
 
-// Middleware
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
+/* ---------- SESSION ---------- */
 app.use(
   session({
-    secret: 'vending-secret',
+    secret: "vending-secret",
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false,
   })
 );
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+/* ---------- POSTGRES ---------- */
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("render")
+    ? { rejectUnauthorized: false }
+    : false,
+});
 
-// Database
-const db = new sqlite3.Database('./payments.db');
-db.run(`
+/* ---------- CREATE TABLE ---------- */
+await pool.query(`
   CREATE TABLE IF NOT EXISTS payments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    item TEXT,
-    amount INTEGER,
-    time TEXT
+    id SERIAL PRIMARY KEY,
+    item TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `);
 
-// ---------- ROUTES ----------
+/* ---------- ROUTES ---------- */
 
 // Home
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
-});
+app.get("/", (req, res) =>
+  res.sendFile(path.join(__dirname, "public/index.html"))
+);
 
 // Customer page
-app.get('/customer', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/customer.html'));
+app.get("/customer", (req, res) =>
+  res.sendFile(path.join(__dirname, "public/customer.html"))
+);
+
+// Login page
+app.get("/login.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "public/login.html"))
+);
+
+// Admin page (protected)
+app.get("/admin.html", (req, res) => {
+  if (!req.session.admin) return res.redirect("/login.html");
+  res.sendFile(path.join(__dirname, "public/admin.html"));
 });
 
-// Buy item
-app.post('/buy/:item', (req, res) => {
-  const item = req.params.item;
-  const amount = item === 'chips' ? 20 : 40;
-
-  db.run(
-    `INSERT INTO payments (item, amount, time)
-     VALUES (?, ?, datetime('now'))`,
-    [item, amount],
-    function (err) {
-      if (err) console.error(err);
-      console.log('Payment inserted ID:', this.lastID);
-      res.redirect('/customer?success=1');
-    }
-  );
-});
-
-// Admin login page
-app.get('/admin', (req, res) => {
-  if (req.session.admin) {
-    res.sendFile(path.join(__dirname, 'public/admin.html'));
-  } else {
-    res.sendFile(path.join(__dirname, 'public/admin-login.html'));
-  }
-});
-
-// Admin login POST
-app.post('/admin/login', (req, res) => {
+/* ---------- AUTH ---------- */
+app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  if (username === 'admin' && password === '1234') {
+  if (
+    username === process.env.ADMIN_USER &&
+    password === process.env.ADMIN_PASS
+  ) {
     req.session.admin = true;
-    res.redirect('/admin');
-  } else {
-    res.redirect('/admin?error=1');
-  }
-});
-
-// Logout
-app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/admin');
-  });
-});
-
-// API payments (ADMIN ONLY)
-app.get('/api/payments', (req, res) => {
-  if (!req.session.admin) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.redirect("/admin.html");
   }
 
-  db.all(`SELECT * FROM payments ORDER BY id DESC`, [], (err, rows) => {
-    if (err) return res.status(500).json(err);
-    res.json(rows);
-  });
+  res.send("❌ Invalid username or password");
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log('Server running on port', PORT);
+app.get("/logout", (req, res) => {
+  req.session.destroy(() => res.redirect("/login.html"));
 });
+
+/* ---------- PAYMENTS API ---------- */
+
+// Insert payment
+app.post("/api/pay", async (req, res) => {
+  const { item, amount } = req.body;
+
+  await pool.query(
+    "INSERT INTO payments (item, amount) VALUES ($1, $2)",
+    [item, amount]
+  );
+
+  res.json({ success: true });
+});
+
+// Get payments (admin only)
+app.get("/api/payments", async (req, res) => {
+  if (!req.session.admin) return res.status(401).json([]);
+
+  const result = await pool.query(
+    "SELECT * FROM payments ORDER BY id DESC"
+  );
+  res.json(result.rows);
+});
+
+/* ---------- START ---------- */
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);
