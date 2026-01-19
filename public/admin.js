@@ -1,30 +1,20 @@
-async function loadPayments() {
-  const r = await fetch("/api/payments");
-  const d = await r.json();
-  const t = document.getElementById("payments-body");
-  t.innerHTML = "";
-  d.forEach(p => {
-    t.innerHTML += `<tr>
-      <td>${p.id}</td>
-      <td>${p.item}</td>
-      <td>₹${p.amount}</td>
-      <td>${new Date(p.created_at).toLocaleString()}</td>
-    </tr>`;
-  });
-}
-
 async function loadCustomers() {
-  const r = await fetch("/api/customers");
-  const d = await r.json();
-  const t = document.getElementById("customers-body");
-  t.innerHTML = "";
-  d.forEach(c => {
-    t.innerHTML += `<tr>
-      <td>${c.id}</td>
-      <td>${c.name}</td>
-      <td>${c.mobile}</td>
-      <td>${new Date(c.created_at).toLocaleString()}</td>
-    </tr>`;
+  const res = await fetch("/api/customers");
+  const data = await res.json();
+  const tbody = document.getElementById("customers-body");
+  tbody.innerHTML = "";
+
+  data.forEach(c => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${c.id}</td>
+        <td>${c.name}</td>
+        <td>${c.mobile}</td>
+        <td>${c.password === null ? "RESET REQUIRED" : "ACTIVE"}</td>
+        <td>
+          <button onclick="forceReset(${c.id})">Force Reset</button>
+        </td>
+      </tr>`;
   });
 }
 
@@ -34,12 +24,24 @@ async function loadCustomerCount() {
   document.getElementById("customerCount").innerText = d.count;
 }
 
-loadPayments();
+async function forceReset(customerId) {
+  if (!confirm("Reset password and force re-registration?")) return;
+
+  const res = await fetch("/api/customers/force-reset", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ customerId })
+  });
+
+  if (res.ok) {
+    alert("Password cleared. Customer must re-register.");
+    loadCustomers();
+  }
+}
+
 loadCustomers();
 loadCustomerCount();
-
 setInterval(() => {
-  loadPayments();
   loadCustomers();
   loadCustomerCount();
 }, 5000);
