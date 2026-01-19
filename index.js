@@ -1,137 +1,105 @@
-const express = require("express");
-const session = require("express-session");
-const path = require("path");
-const { Pool } = require("pg");
+const express = require('express');
+const path = require('path');
+const session = require('express-session');
 
 const app = express();
+const PORT = process.env.PORT || 10000;
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
-
-app.use(express.urlencoded({ extended: true }));
+/* ---------- MIDDLEWARE ---------- */
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
-    secret: "vending_secret",
+app.use(
+  session({
+    secret: 'vending-secret',
     resave: false,
-    saveUninitialized: true
-}));
-
-app.use(express.static("public"));
-
-/* ---------- ROUTES ---------- */
-
-// Home
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public/index.html"));
-});
-
-// Pages
-app.get("/customer-login", (req, res) =>
-    res.sendFile(path.join(__dirname, "public/customer-login.html"))
+    saveUninitialized: true,
+  })
 );
 
-app.get("/customer-register", (req, res) =>
-    res.sendFile(path.join(__dirname, "public/customer-register.html"))
-);
+/* ---------- STATIC FILES ---------- */
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get("/customer", (req, res) => {
-    if (!req.session.customer) return res.redirect("/customer-login");
-    res.sendFile(path.join(__dirname, "public/customer.html"));
+/* ---------- PAGE ROUTES ---------- */
+
+// Home / Menu
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get("/admin", (req, res) =>
-    res.sendFile(path.join(__dirname, "public/admin.html"))
-);
-
-/* ---------- CUSTOMER REGISTER ---------- */
-app.post("/customer-register", async (req, res) => {
-    const { mobile, password } = req.body;
-
-    await pool.query(
-        `INSERT INTO customers (mobile, password)
-         VALUES ($1,$2)
-         ON CONFLICT (mobile)
-         DO UPDATE SET password=$2`,
-        [mobile, password]
-    );
-
-    res.send(`
-        <script>
-            alert("Registration successful. Please login.");
-            location.href="/customer-login";
-        </script>
-    `);
+// Admin login page
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-/* ---------- CUSTOMER LOGIN ---------- */
-app.post("/customer-login", async (req, res) => {
-    const { mobile, password } = req.body;
-
-    const result = await pool.query(
-        "SELECT * FROM customers WHERE mobile=$1",
-        [mobile]
-    );
-
-    if (result.rows.length === 0)
-        return res.send("User not found");
-
-    const user = result.rows[0];
-
-    if (user.password === null) {
-        return res.send(`
-            <script>
-                alert("Password reset by admin. Please re-register.");
-                location.href="/customer-register";
-            </script>
-        `);
-    }
-
-    if (user.password !== password)
-        return res.send("Invalid password");
-
-    req.session.customer = user;
-    res.redirect("/customer");
+// Admin panel (protected)
+app.get('/admin', (req, res) => {
+  if (!req.session.admin) {
+    return res.redirect('/login');
+  }
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-/* ---------- BUY ITEM ---------- */
-app.post("/buy", async (req, res) => {
-    if (!req.session.customer)
-        return res.status(401).send("Login required");
-
-    const { item, amount } = req.body;
-
-    await pool.query(
-        "INSERT INTO payments (customer_id,item,amount) VALUES ($1,$2,$3)",
-        [req.session.customer.id, item, amount]
-    );
-
-    res.send("Payment successful");
+// Customer login
+app.get('/customer-login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'customer-login.html'));
 });
 
-/* ---------- ADMIN DATA ---------- */
-app.get("/api/payments", async (req, res) => {
-    const data = await pool.query("SELECT * FROM payments ORDER BY time DESC");
-    res.json(data.rows);
+// Customer register
+app.get('/customer-register', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'customer-register.html'));
 });
 
-app.get("/api/customers", async (req, res) => {
-    const data = await pool.query("SELECT * FROM customers");
-    res.json(data.rows);
+// Customer vending page (protected)
+app.get('/customer', (req, res) => {
+  if (!req.session.customer) {
+    return res.redirect('/customer-login');
+  }
+  res.sendFile(path.join(__dirname, 'public', 'customer.html'));
 });
 
-/* ---------- ADMIN RESET PASSWORD ---------- */
-app.post("/admin/reset-password", async (req, res) => {
-    const { mobile } = req.body;
+/* ---------- AUTH ROUTES ---------- */
 
-    await pool.query(
-        "UPDATE customers SET password=NULL WHERE mobile=$1",
-        [mobile]
-    );
+// Admin login
+app.post('/admin-login', (req, res) => {
+  const { username, password } = req.body;
 
-    res.send("Password reset");
+  if (username === 'admin' && password === 'admin123') {
+    req.session.admin = true;
+    return res.json({ success: true });
+  }
+
+  res.status(401).json({ success: false, message: 'Invalid admin login' });
 });
 
-app.listen(10000, () => console.log("Server running"));
+// Admin logout
+app.get('/admin-logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
+
+// Customer login (placeholder logic)
+app.post('/customer-login', (req, res) => {
+  const { mobile, password } = req.body;
+
+  // Replace later with DB verification
+  if (mobile && password) {
+    req.session.customer = mobile;
+    return res.json({ success: true });
+  }
+
+  res.status(401).json({ success: false });
+});
+
+// Customer logout
+app.get('/customer-logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/customer-login');
+  });
+});
+
+/* ---------- SERVER ---------- */
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
