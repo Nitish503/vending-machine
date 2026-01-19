@@ -1,77 +1,119 @@
-const express = require("express");
-const path = require("path");
+import express from "express";
+import pkg from "pg";
+import path from "path";
+import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+
+dotenv.config();
+const { Pool } = pkg;
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const __dirname = path.resolve();
 
-// =====================
-// MIDDLEWARE
-// =====================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
-// ✅ SERVE STATIC FILES
-app.use(express.static(path.join(__dirname, "public")));
-
-// =====================
-// GET ROUTES (PAGES)
-// =====================
-
-// Home page
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-// Admin login page
-app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
-});
+/* ================= ROUTES ================= */
 
-// Customer login page
-app.get("/customer-login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "customer-login.html"));
-});
+// Home
+app.get("/", (_, res) => res.sendFile(__dirname + "/public/index.html"));
 
-// Customer register page
-app.get("/customer-register", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "customer-register.html"));
-});
+// Pages
+app.get("/login", (_, res) => res.sendFile(__dirname + "/public/login.html"));
+app.get("/customer-login", (_, res) => res.sendFile(__dirname + "/public/customer-login.html"));
+app.get("/customer-register", (_, res) => res.sendFile(__dirname + "/public/customer-register.html"));
+app.get("/customer", (_, res) => res.sendFile(__dirname + "/public/customer.html"));
+app.get("/admin", (_, res) => res.sendFile(__dirname + "/public/admin.html"));
 
-// Admin panel
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
-
-// =====================
-// POST ROUTES (FORMS / API)
-// =====================
-
-// Admin login (example)
-app.post("/login", (req, res) => {
+/* ========== ADMIN LOGIN ========== */
+app.post("/admin-login", (req, res) => {
   const { username, password } = req.body;
-
   if (username === "admin" && password === "admin123") {
     res.json({ success: true });
   } else {
-    res.status(401).json({ success: false, message: "Invalid credentials" });
+    res.json({ success: false });
   }
 });
 
-// Customer login (example)
-app.post("/customer-login", (req, res) => {
-  const { mobile, password } = req.body;
+/* ========== CUSTOMER REGISTER ========== */
+app.post("/customer-register", async (req, res) => {
+  const { name, mobile, password } = req.body;
+  const hash = await bcrypt.hash(password, 10);
 
-  if (!mobile || !password) {
-    return res.status(400).json({ success: false });
-  }
+  await pool.query(
+    `INSERT INTO customers (name, mobile, password, must_register)
+     VALUES ($1,$2,$3,false)
+     ON CONFLICT (mobile)
+     DO UPDATE SET password=$3, must_register=false`,
+    [name, mobile, hash]
+  );
 
-  // Replace with DB check later
   res.json({ success: true });
 });
 
-// =====================
-// START SERVER
-// =====================
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+/* ========== CUSTOMER LOGIN ========== */
+app.post("/customer-login", async (req, res) => {
+  const { mobile, password } = req.body;
+  const result = await pool.query("SELECT * FROM customers WHERE mobile=$1", [mobile]);
+
+  if (result.rows.length === 0)
+    return res.json({ success: false, msg: "Register first" });
+
+  const user = result.rows[0];
+
+  if (user.must_register)
+    return res.json({ success: false, msg: "Password reset by admin. Re-register." });
+
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) return res.json({ success: false, msg: "Invalid password" });
+
+  res.json({ success: true, customerId: user.id });
 });
+
+/* ========== PAYMENTS ========== */
+app.post("/pay", async (req, res) => {
+  const { customerId, item, amount } = req.body;
+
+  await pool.query(
+    "INSERT INTO payments (customer_id,item,amount) VALUES ($1,$2,$3)",
+    [customerId, item, amount]
+  );
+
+  res.json({ success: true });
+});
+
+/* ========== ADMIN DATA ========== */
+app.get("/api/customers", async (_, res) => {
+  const r = await pool.query("SELECT id,name,mobile,must_register FROM customers ORDER BY id");
+  res.json(r.rows);
+});
+
+app.get("/api/payments", async (_, res) => {
+  const r = await pool.query(`
+    SELECT payments.id, customers.name, item, amount, payments.created_at
+    FROM payments
+    JOIN customers ON customers.id = payments.customer_id
+    ORDER BY payments.id DESC
+  `);
+  res.json(r.rows);
+});
+
+/* ========== ADMIN RESET CUSTOMER ========== */
+app.post("/admin-reset", async (req, res) => {
+  const { customerId } = req.body;
+  await pool.query(
+    "UPDATE customers SET password=NULL, must_register=true WHERE id=$1",
+    [customerId]
+  );
+  res.json({ success: true });
+});
+
+/* ================= SERVER ================= */
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log("Server running on", PORT));
