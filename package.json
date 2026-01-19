@@ -1,12 +1,13 @@
 {
   "name": "vending-machine",
-  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.19.2",
+    "express": "^4.18.2",
     "express-session": "^1.17.3",
-    "pg": "^8.11.5"
+    "pg": "^8.11.3"
   }
 }
