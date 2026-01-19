@@ -1,47 +1,36 @@
-async function loadCustomers() {
-  const res = await fetch("/api/customers");
-  const data = await res.json();
-  const tbody = document.getElementById("customers-body");
-  tbody.innerHTML = "";
+function load() {
+    fetch("/api/customers")
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById("customers").innerHTML =
+                data.map(c =>
+                    `<div>${c.mobile}
+                     <button onclick="reset('${c.mobile}')">
+                     Force Reset</button></div>`
+                ).join("");
+        });
 
-  data.forEach(c => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${c.id}</td>
-        <td>${c.name}</td>
-        <td>${c.mobile}</td>
-        <td>${c.password === null ? "RESET REQUIRED" : "ACTIVE"}</td>
-        <td>
-          <button onclick="forceReset(${c.id})">Force Reset</button>
-        </td>
-      </tr>`;
-  });
+    fetch("/api/payments")
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById("payments").innerHTML =
+                "<tr><th>ID</th><th>Item</th><th>₹</th><th>Time</th></tr>" +
+                data.map(p =>
+                    `<tr><td>${p.id}</td>
+                     <td>${p.item}</td>
+                     <td>${p.amount}</td>
+                     <td>${p.time}</td></tr>`
+                ).join("");
+        });
 }
 
-async function loadCustomerCount() {
-  const r = await fetch("/api/customers/count");
-  const d = await r.json();
-  document.getElementById("customerCount").innerText = d.count;
+function reset(mobile) {
+    fetch("/admin/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile })
+    }).then(() => alert("Password reset"));
 }
 
-async function forceReset(customerId) {
-  if (!confirm("Reset password and force re-registration?")) return;
-
-  const res = await fetch("/api/customers/force-reset", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ customerId })
-  });
-
-  if (res.ok) {
-    alert("Password cleared. Customer must re-register.");
-    loadCustomers();
-  }
-}
-
-loadCustomers();
-loadCustomerCount();
-setInterval(() => {
-  loadCustomers();
-  loadCustomerCount();
-}, 5000);
+setInterval(load, 5000);
+load();

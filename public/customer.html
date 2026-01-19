@@ -1,8 +1,14 @@
-<a href="/customer/logout">Logout</a>
+<h2>Vending Machine</h2>
 
-<button onclick="pay('Chips',20)">Buy Chips ₹20</button>
-<button onclick="pay('Cold Drink',40)">Buy Cold Drink ₹40</button>
+<button onclick="buy('Chips',20)">Buy Chips ₹20</button>
+<button onclick="buy('Cold Drink',40)">Buy Cold Drink ₹40</button>
 
-<p id="msg"></p>
-
-<script src="script.js"></script>
+<script>
+function buy(item, amount) {
+    fetch("/buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item, amount })
+    }).then(r => r.text()).then(alert);
+}
+</script>
