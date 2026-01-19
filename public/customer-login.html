@@ -1,27 +1,39 @@
 <h2>Customer Login</h2>
 
-<form id="loginForm">
-  <input name="mobile" placeholder="Mobile" required />
-  <input name="password" type="password" placeholder="Password" required />
-  <button>Login</button>
-</form>
+<input id="mobile" placeholder="Mobile" />
+<input id="password" type="password" placeholder="Password" />
+<button onclick="login()">Login</button>
 
-<p><a href="#" onclick="alert('Please contact admin to reset password')">
-Forgot password?</a></p>
-
-<p>New user? <a href="/customer-register">Register</a></p>
+<p>
+  <a href="/customer-register.html">Register</a> |
+  <a href="#" onclick="forgot()">Forgot password?</a>
+</p>
 
 <script>
-document.getElementById("loginForm").onsubmit = async e => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target));
+async function login() {
+  const mobile = mobile.value;
+  const password = password.value;
+
   const res = await fetch("/customer-login", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify(data)
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mobile, password })
   });
-  const r = await res.json();
-  if (r.success) location.href="/customer";
-  else alert(r.message);
-};
+
+  const data = await res.json();
+
+  if (!data.success) {
+    alert(data.message);
+    if (data.message.includes("re-register")) {
+      location.href = "/customer-register.html";
+    }
+    return;
+  }
+
+  location.href = "/customer.html";
+}
+
+function forgot() {
+  alert("Please contact admin to reset your password.");
+}
 </script>
