@@ -1,119 +1,171 @@
 import express from "express";
 import pkg from "pg";
 import path from "path";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
 dotenv.config();
-const { Pool } = pkg;
 
+const { Pool } = pkg;
 const app = express();
 const __dirname = path.resolve();
 
+/* ===================== MIDDLEWARE ===================== */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+/* ===================== DATABASE ===================== */
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-/* ================= ROUTES ================= */
+pool.connect()
+  .then(() => console.log("✅ PostgreSQL connected"))
+  .catch(err => {
+    console.error("❌ Database connection failed", err);
+    process.exit(1);
+  });
 
-// Home
-app.get("/", (_, res) => res.sendFile(__dirname + "/public/index.html"));
+/* ===================== BASIC ROUTES ===================== */
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+});
 
-// Pages
-app.get("/login", (_, res) => res.sendFile(__dirname + "/public/login.html"));
-app.get("/customer-login", (_, res) => res.sendFile(__dirname + "/public/customer-login.html"));
-app.get("/customer-register", (_, res) => res.sendFile(__dirname + "/public/customer-register.html"));
-app.get("/customer", (_, res) => res.sendFile(__dirname + "/public/customer.html"));
-app.get("/admin", (_, res) => res.sendFile(__dirname + "/public/admin.html"));
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/login.html"));
+});
 
-/* ========== ADMIN LOGIN ========== */
+app.get("/customer-login", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/customer-login.html"));
+});
+
+app.get("/customer-register", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/customer-register.html"));
+});
+
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/admin.html"));
+});
+
+/* ===================== ADMIN LOGIN ===================== */
 app.post("/admin-login", (req, res) => {
   const { username, password } = req.body;
-  if (username === "admin" && password === "admin123") {
+
+  if (
+    username === process.env.ADMIN_USER &&
+    password === process.env.ADMIN_PASS
+  ) {
+    return res.json({ success: true });
+  }
+
+  res.status(401).json({ success: false, message: "Invalid credentials" });
+});
+
+/* ===================== CUSTOMER REGISTER ===================== */
+app.post("/customer-register", async (req, res) => {
+  const { name, mobile, password } = req.body;
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      `INSERT INTO customers (name, mobile, password, reset_required)
+       VALUES ($1,$2,$3,false)
+       ON CONFLICT (mobile)
+       DO UPDATE SET password=$3, reset_required=false`,
+      [name, mobile, hash]
+    );
+
     res.json({ success: true });
-  } else {
-    res.json({ success: false });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
   }
 });
 
-/* ========== CUSTOMER REGISTER ========== */
-app.post("/customer-register", async (req, res) => {
-  const { name, mobile, password } = req.body;
-  const hash = await bcrypt.hash(password, 10);
-
-  await pool.query(
-    `INSERT INTO customers (name, mobile, password, must_register)
-     VALUES ($1,$2,$3,false)
-     ON CONFLICT (mobile)
-     DO UPDATE SET password=$3, must_register=false`,
-    [name, mobile, hash]
-  );
-
-  res.json({ success: true });
-});
-
-/* ========== CUSTOMER LOGIN ========== */
+/* ===================== CUSTOMER LOGIN ===================== */
 app.post("/customer-login", async (req, res) => {
   const { mobile, password } = req.body;
-  const result = await pool.query("SELECT * FROM customers WHERE mobile=$1", [mobile]);
 
-  if (result.rows.length === 0)
-    return res.json({ success: false, msg: "Register first" });
+  try {
+    const result = await pool.query(
+      "SELECT * FROM customers WHERE mobile=$1",
+      [mobile]
+    );
 
-  const user = result.rows[0];
+    if (result.rows.length === 0)
+      return res.status(401).json({ message: "User not found" });
 
-  if (user.must_register)
-    return res.json({ success: false, msg: "Password reset by admin. Re-register." });
+    const user = result.rows[0];
 
-  const ok = await bcrypt.compare(password, user.password);
-  if (!ok) return res.json({ success: false, msg: "Invalid password" });
+    if (user.reset_required)
+      return res.status(403).json({ message: "RESET_REQUIRED" });
 
-  res.json({ success: true, customerId: user.id });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match)
+      return res.status(401).json({ message: "Invalid password" });
+
+    res.json({ success: true, customer_id: user.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
-/* ========== PAYMENTS ========== */
-app.post("/pay", async (req, res) => {
-  const { customerId, item, amount } = req.body;
+/* ===================== ADMIN RESET CUSTOMER ===================== */
+app.post("/admin-reset-customer", async (req, res) => {
+  const { customer_id } = req.body;
 
-  await pool.query(
-    "INSERT INTO payments (customer_id,item,amount) VALUES ($1,$2,$3)",
-    [customerId, item, amount]
+  try {
+    await pool.query(
+      "UPDATE customers SET password=NULL, reset_required=true WHERE id=$1",
+      [customer_id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
+
+/* ===================== PAYMENTS ===================== */
+app.post("/payment", async (req, res) => {
+  const { customer_id, item, amount } = req.body;
+
+  try {
+    await pool.query(
+      `INSERT INTO payments (customer_id, item, amount)
+       VALUES ($1,$2,$3)`,
+      [customer_id, item, amount]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
+
+/* ===================== ADMIN DATA ===================== */
+app.get("/admin/customers", async (req, res) => {
+  const data = await pool.query("SELECT id,name,mobile,reset_required FROM customers");
+  res.json(data.rows);
+});
+
+app.get("/admin/payments", async (req, res) => {
+  const data = await pool.query(
+    `SELECT p.id,c.name,c.mobile,p.item,p.amount,p.created_at
+     FROM payments p
+     JOIN customers c ON c.id=p.customer_id
+     ORDER BY p.id DESC`
   );
-
-  res.json({ success: true });
+  res.json(data.rows);
 });
 
-/* ========== ADMIN DATA ========== */
-app.get("/api/customers", async (_, res) => {
-  const r = await pool.query("SELECT id,name,mobile,must_register FROM customers ORDER BY id");
-  res.json(r.rows);
-});
-
-app.get("/api/payments", async (_, res) => {
-  const r = await pool.query(`
-    SELECT payments.id, customers.name, item, amount, payments.created_at
-    FROM payments
-    JOIN customers ON customers.id = payments.customer_id
-    ORDER BY payments.id DESC
-  `);
-  res.json(r.rows);
-});
-
-/* ========== ADMIN RESET CUSTOMER ========== */
-app.post("/admin-reset", async (req, res) => {
-  const { customerId } = req.body;
-  await pool.query(
-    "UPDATE customers SET password=NULL, must_register=true WHERE id=$1",
-    [customerId]
-  );
-  res.json({ success: true });
-});
-
-/* ================= SERVER ================= */
+/* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("Server running on", PORT));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
