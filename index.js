@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 const __dirname = path.resolve();
 
+/* ---------- MIDDLEWARE ---------- */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -19,12 +20,13 @@ app.use(
   })
 );
 
+/* ---------- POSTGRES ---------- */
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
 
-// DB init
+/* ---------- DB INIT ---------- */
 (async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS customers (
@@ -49,12 +51,14 @@ const pool = new pg.Pool({
   console.log("Database ready");
 })();
 
-// Home
+/* ---------- HOME ---------- */
 app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "public/index.html"))
 );
 
-/* -------- CUSTOMER -------- */
+/* =====================================================
+   CUSTOMER REGISTRATION & LOGIN (VERIFIED FROM DB)
+   ===================================================== */
 
 // Pages
 app.get("/customer-login", (req, res) =>
@@ -65,9 +69,10 @@ app.get("/customer-register", (req, res) =>
   res.sendFile(path.join(__dirname, "public/customer-register.html"))
 );
 
-// Register
+// Register customer (STORE DATA)
 app.post("/customer/register", async (req, res) => {
   const { name, mobile, password } = req.body;
+
   try {
     await pool.query(
       "INSERT INTO customers (name, mobile, password) VALUES ($1,$2,$3)",
@@ -79,21 +84,24 @@ app.post("/customer/register", async (req, res) => {
   }
 });
 
-// Login
+// Login customer (VERIFY FROM DB)
 app.post("/customer/login", async (req, res) => {
   const { mobile, password } = req.body;
-  const r = await pool.query(
-    "SELECT * FROM customers WHERE mobile=$1 AND password=$2",
+
+  const result = await pool.query(
+    "SELECT id FROM customers WHERE mobile=$1 AND password=$2",
     [mobile, password]
   );
-  if (r.rows.length) {
-    req.session.customerId = r.rows[0].id;
+
+  if (result.rows.length === 1) {
+    req.session.customerId = result.rows[0].id;
     return res.redirect("/customer");
   }
+
   res.redirect("/customer-login?error=1");
 });
 
-// Logout
+// Logout customer
 app.get("/customer/logout", (req, res) => {
   req.session.customerId = null;
   res.redirect("/");
@@ -105,20 +113,25 @@ app.get("/customer", (req, res) => {
   res.sendFile(path.join(__dirname, "public/customer.html"));
 });
 
-// Payment API (protected)
+// Protected payment API
 app.post("/api/pay", async (req, res) => {
-  if (!req.session.customerId)
+  if (!req.session.customerId) {
     return res.status(401).json({ error: "Login required" });
+  }
 
   const { item, amount } = req.body;
+
   await pool.query(
     "INSERT INTO payments (customer_id, item, amount) VALUES ($1,$2,$3)",
     [req.session.customerId, item, amount]
   );
+
   res.json({ success: true });
 });
 
-/* -------- ADMIN -------- */
+/* =====================================================
+   ADMIN
+   ===================================================== */
 
 app.get("/login", (req, res) =>
   res.sendFile(path.join(__dirname, "public/login.html"))
@@ -126,6 +139,7 @@ app.get("/login", (req, res) =>
 
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
+
   if (
     username === process.env.ADMIN_USER &&
     password === process.env.ADMIN_PASS
@@ -133,6 +147,7 @@ app.post("/login", (req, res) => {
     req.session.admin = true;
     return res.redirect("/admin");
   }
+
   res.redirect("/login?error=1");
 });
 
@@ -145,12 +160,37 @@ app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/"));
 });
 
+/* ---------- ADMIN APIs ---------- */
+
+// Payments
 app.get("/api/payments", async (req, res) => {
   if (!req.session.admin) return res.status(401).json([]);
+
   const r = await pool.query(
     "SELECT * FROM payments ORDER BY created_at DESC"
   );
   res.json(r.rows);
 });
 
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+// Registered customers list
+app.get("/api/customers", async (req, res) => {
+  if (!req.session.admin) return res.status(401).json([]);
+
+  const r = await pool.query(
+    "SELECT id, name, mobile, created_at FROM customers ORDER BY created_at DESC"
+  );
+  res.json(r.rows);
+});
+
+// Customer count
+app.get("/api/customers/count", async (req, res) => {
+  if (!req.session.admin) return res.status(401).json({ count: 0 });
+
+  const r = await pool.query("SELECT COUNT(*) FROM customers");
+  res.json({ count: r.rows[0].count });
+});
+
+/* ---------- START ---------- */
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);
