@@ -1,14 +1,26 @@
-<header class="header">
-  <div class="logo">🥤 Vending Machine</div>
-  <div class="menu-btn" onclick="toggleMenu()">☰</div>
-  <div class="menu" id="menu">
-    <a href="/customer-login">Customer</a>
-    <a href="/login">Admin</a>
-  </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vending Machine</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<header>
+  <h1>🥤 Vending Machine</h1>
+  <button onclick="toggleMenu()">☰</button>
 </header>
+
+<div id="menu" class="menu hidden">
+  <a href="/customer-login">Customer</a>
+  <a href="/login">Admin</a>
+</div>
 
 <script>
 function toggleMenu() {
-  document.getElementById("menu").classList.toggle("show");
+  document.getElementById("menu").classList.toggle("hidden");
 }
 </script>
+
+</body>
+</html>

@@ -1,7 +1,22 @@
 <h2>Customer Registration</h2>
 
-<form method="POST" action="/customer-register">
-    <input name="mobile" placeholder="Mobile" required>
-    <input type="password" name="password" placeholder="Password" required>
-    <button>Register</button>
+<form id="regForm">
+  <input name="name" placeholder="Name" required />
+  <input name="mobile" placeholder="Mobile" required />
+  <input name="password" type="password" placeholder="Password" required />
+  <button>Register</button>
 </form>
+
+<script>
+document.getElementById("regForm").onsubmit = async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  await fetch("/customer-register", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(data)
+  });
+  alert("Registered! Login now.");
+  location.href="/customer-login";
+};
+</script>

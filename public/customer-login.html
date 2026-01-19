@@ -1,14 +1,27 @@
 <h2>Customer Login</h2>
 
-<form method="POST" action="/customer-login">
-    <input name="mobile" placeholder="Mobile" required>
-    <input type="password" name="password" placeholder="Password" required>
-    <button>Login</button>
+<form id="loginForm">
+  <input name="mobile" placeholder="Mobile" required />
+  <input name="password" type="password" placeholder="Password" required />
+  <button>Login</button>
 </form>
 
-<p>
-<a href="/customer-register">Register</a> |
-<a href="#" onclick="alert('Please contact admin to reset password')">
-Forgot Password?
-</a>
-</p>
+<p><a href="#" onclick="alert('Please contact admin to reset password')">
+Forgot password?</a></p>
+
+<p>New user? <a href="/customer-register">Register</a></p>
+
+<script>
+document.getElementById("loginForm").onsubmit = async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  const res = await fetch("/customer-login", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(data)
+  });
+  const r = await res.json();
+  if (r.success) location.href="/customer";
+  else alert(r.message);
+};
+</script>

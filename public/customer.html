@@ -4,11 +4,14 @@
 <button onclick="buy('Cold Drink',40)">Buy Cold Drink ₹40</button>
 
 <script>
-function buy(item, amount) {
-    fetch("/buy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ item, amount })
-    }).then(r => r.text()).then(alert);
+async function buy(item,amount){
+  const res = await fetch("/buy",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({item,amount})
+  });
+  const r = await res.json();
+  if(r.success) alert("Payment successful");
+  else alert("Please login first");
 }
 </script>
