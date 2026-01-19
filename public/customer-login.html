@@ -1,39 +1,8 @@
 <h2>Customer Login</h2>
-
-<input id="mobile" placeholder="Mobile" />
-<input id="password" type="password" placeholder="Password" />
-<button onclick="login()">Login</button>
-
-<p>
-  <a href="/customer-register.html">Register</a> |
-  <a href="#" onclick="forgot()">Forgot password?</a>
-</p>
-
-<script>
-async function login() {
-  const mobile = mobile.value;
-  const password = password.value;
-
-  const res = await fetch("/customer-login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mobile, password })
-  });
-
-  const data = await res.json();
-
-  if (!data.success) {
-    alert(data.message);
-    if (data.message.includes("re-register")) {
-      location.href = "/customer-register.html";
-    }
-    return;
-  }
-
-  location.href = "/customer.html";
-}
-
-function forgot() {
-  alert("Please contact admin to reset your password.");
-}
-</script>
+<form method="POST" action="/customer-login">
+  <input name="mobile" placeholder="Mobile" required>
+  <input name="password" type="password" required>
+  <button>Login</button>
+</form>
+<br>
+<a href="/customer-register">Register / Forgot password?</a>

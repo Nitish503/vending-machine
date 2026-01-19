@@ -1,8 +1,8 @@
 import express from "express";
 import pkg from "pg";
-import path from "path";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 const { Pool } = pkg;
@@ -19,78 +19,58 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-/* ===================== PAGES ===================== */
+/* ================= ROUTES ================= */
+
+// Home
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/index.html");
+});
 
 // Admin login page
 app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/login.html"));
+  res.sendFile(__dirname + "/public/login.html");
 });
 
 // Customer login page
 app.get("/customer-login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/customer-login.html"));
+  res.sendFile(__dirname + "/public/customer-login.html");
+});
+
+// Customer register page
+app.get("/customer-register", (req, res) => {
+  res.sendFile(__dirname + "/public/customer-register.html");
 });
 
 // Admin panel
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/admin.html"));
+  res.sendFile(__dirname + "/public/admin.html");
 });
 
-// Customer page
+// Customer panel
 app.get("/customer", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/customer.html"));
+  res.sendFile(__dirname + "/public/customer.html");
 });
 
-/* ===================== ADMIN LOGIN ===================== */
-
-app.post("/login", async (req, res) => {
+/* ========== ADMIN LOGIN ========== */
+app.post("/admin-login", (req, res) => {
   const { username, password } = req.body;
 
-  if (
-    username === process.env.ADMIN_USER &&
-    password === process.env.ADMIN_PASS
-  ) {
-    return res.redirect("/admin");
+  if (username === "admin" && password === "admin123") {
+    res.redirect("/admin");
+  } else {
+    res.send("Invalid admin credentials");
   }
-
-  res.send("Invalid admin credentials");
 });
 
-/* ===================== CUSTOMER LOGIN ===================== */
-
-app.post("/customer-login", async (req, res) => {
-  const { mobile, password } = req.body;
-
-  const user = await pool.query(
-    "SELECT * FROM customers WHERE mobile=$1",
-    [mobile]
-  );
-
-  if (user.rowCount === 0) {
-    return res.send("User not found. Please register.");
-  }
-
-  if (user.rows[0].must_register) {
-    return res.send("Password reset by admin. Please register again.");
-  }
-
-  const match = await bcrypt.compare(password, user.rows[0].password);
-  if (!match) {
-    return res.send("Invalid password");
-  }
-
-  res.redirect("/customer");
-});
-
-/* ===================== CUSTOMER REGISTER ===================== */
-
-app.post("/register", async (req, res) => {
+/* ========== CUSTOMER REGISTER ========== */
+app.post("/customer-register", async (req, res) => {
   const { name, mobile, password } = req.body;
+
   const hash = await bcrypt.hash(password, 10);
 
   await pool.query(
-    `INSERT INTO customers (name, mobile, password, must_register)
-     VALUES ($1,$2,$3,false)
+    `INSERT INTO customers(name, mobile, password, must_register)
+     VALUES($1,$2,$3,false)
      ON CONFLICT (mobile)
      DO UPDATE SET password=$3, must_register=false`,
     [name, mobile, hash]
@@ -99,20 +79,71 @@ app.post("/register", async (req, res) => {
   res.redirect("/customer-login");
 });
 
-/* ===================== ADMIN RESET CUSTOMER ===================== */
+/* ========== CUSTOMER LOGIN ========== */
+app.post("/customer-login", async (req, res) => {
+  const { mobile, password } = req.body;
 
-app.post("/admin/reset/:mobile", async (req, res) => {
+  const r = await pool.query(
+    "SELECT * FROM customers WHERE mobile=$1",
+    [mobile]
+  );
+
+  if (r.rowCount === 0)
+    return res.send("User not found. Please register.");
+
+  const user = r.rows[0];
+
+  if (user.must_register)
+    return res.send("Password reset by admin. Please register again.");
+
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) return res.send("Invalid password");
+
+  res.send(`
+    <script>
+      localStorage.setItem("customer_id","${user.id}");
+      window.location.href="/customer";
+    </script>
+  `);
+});
+
+/* ========== PAYMENT ========== */
+app.post("/payment", async (req, res) => {
+  const { customer_id, item, amount } = req.body;
+
   await pool.query(
-    "UPDATE customers SET must_register=true WHERE mobile=$1",
-    [req.params.mobile]
+    "INSERT INTO payments(customer_id,item,amount) VALUES($1,$2,$3)",
+    [customer_id, item, amount]
+  );
+
+  res.json({ success: true });
+});
+
+/* ========== ADMIN DATA ========== */
+app.get("/admin-data", async (req, res) => {
+  const customers = await pool.query("SELECT * FROM customers");
+  const payments = await pool.query(
+    "SELECT p.*, c.name FROM payments p JOIN customers c ON p.customer_id=c.id"
+  );
+
+  res.json({
+    customers: customers.rows,
+    payments: payments.rows
+  });
+});
+
+/* ========== RESET CUSTOMER ========== */
+app.post("/reset-customer", async (req, res) => {
+  const { id } = req.body;
+
+  await pool.query(
+    "UPDATE customers SET password=NULL, must_register=true WHERE id=$1",
+    [id]
   );
 
   res.redirect("/admin");
 });
 
-/* ===================== SERVER ===================== */
-
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () =>
-  console.log(`Server running on port ${PORT}`)
+app.listen(10000, () =>
+  console.log("Server running on port 10000")
 );
