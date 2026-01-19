@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Vending Machine</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
 
-<header>
-  <h1>🥤 Vending Machine</h1>
-  <button onclick="toggleMenu()">☰</button>
+<header class="topbar">
+  <div class="logo">🥤 Vending Machine</div>
+  <button class="menu-btn" onclick="toggleMenu()">☰</button>
 </header>
 
 <div id="menu" class="menu hidden">
-  <a href="/customer-login">Customer</a>
-  <a href="/login">Admin</a>
+  <a href="/customer-login">Customer Page</a>
+  <a href="/login">Admin Page</a>
 </div>
 
 <script>
