@@ -1,0 +1,12 @@
+<form method="POST" action="/customer/register">
+  <h2>Customer Registration</h2>
+  <input name="name" placeholder="Name" required>
+  <input name="mobile" placeholder="Mobile" required>
+  <input type="password" name="password" placeholder="Password" required>
+  <button>Register</button>
+</form>
+
+<script>
+if (new URLSearchParams(location.search).get("error"))
+  alert("Mobile already registered");
+</script>

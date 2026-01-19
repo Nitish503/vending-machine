@@ -1,32 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Customer Login</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<form method="POST" action="/customer/login">
+  <h2>Customer Login</h2>
+  <input name="mobile" placeholder="Mobile" required>
+  <input type="password" name="password" placeholder="Password" required>
+  <button>Login</button>
+</form>
 
-<div class="login-wrapper">
-  <div class="login-card">
-    <h2>Customer Login</h2>
+<p>
+  New user?
+  <a href="/customer-register">Register here</a>
+</p>
 
-    <form method="POST" action="/customer/login">
-      <input name="mobile" placeholder="Mobile Number" required>
-      <input type="password" name="password" placeholder="Password" required>
-      <button type="submit">Login</button>
-    </form>
-
-    <div class="error-msg">
-      <script>
-        if (new URLSearchParams(location.search).get("error")) {
-          document.write("❌ Invalid login details");
-        }
-      </script>
-    </div>
-
-    <a href="/">⬅ Back</a>
-  </div>
-</div>
-
-</body>
-</html>
+<script>
+const p = new URLSearchParams(location.search);
+if (p.get("error")) alert("Invalid login");
+if (p.get("registered")) alert("Registration successful");
+</script>
