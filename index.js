@@ -5,167 +5,114 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
 dotenv.config();
-
 const { Pool } = pkg;
+
 const app = express();
 const __dirname = path.resolve();
 
-/* ===================== MIDDLEWARE ===================== */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-/* ===================== DATABASE ===================== */
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-pool.connect()
-  .then(() => console.log("✅ PostgreSQL connected"))
-  .catch(err => {
-    console.error("❌ Database connection failed", err);
-    process.exit(1);
-  });
+/* ===================== PAGES ===================== */
 
-/* ===================== BASIC ROUTES ===================== */
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
-});
-
+// Admin login page
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public/login.html"));
 });
 
+// Customer login page
 app.get("/customer-login", (req, res) => {
   res.sendFile(path.join(__dirname, "public/customer-login.html"));
 });
 
-app.get("/customer-register", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/customer-register.html"));
-});
-
+// Admin panel
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "public/admin.html"));
 });
 
+// Customer page
+app.get("/customer", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/customer.html"));
+});
+
 /* ===================== ADMIN LOGIN ===================== */
-app.post("/admin-login", (req, res) => {
+
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   if (
     username === process.env.ADMIN_USER &&
     password === process.env.ADMIN_PASS
   ) {
-    return res.json({ success: true });
+    return res.redirect("/admin");
   }
 
-  res.status(401).json({ success: false, message: "Invalid credentials" });
-});
-
-/* ===================== CUSTOMER REGISTER ===================== */
-app.post("/customer-register", async (req, res) => {
-  const { name, mobile, password } = req.body;
-
-  try {
-    const hash = await bcrypt.hash(password, 10);
-
-    await pool.query(
-      `INSERT INTO customers (name, mobile, password, reset_required)
-       VALUES ($1,$2,$3,false)
-       ON CONFLICT (mobile)
-       DO UPDATE SET password=$3, reset_required=false`,
-      [name, mobile, hash]
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false });
-  }
+  res.send("Invalid admin credentials");
 });
 
 /* ===================== CUSTOMER LOGIN ===================== */
+
 app.post("/customer-login", async (req, res) => {
   const { mobile, password } = req.body;
 
-  try {
-    const result = await pool.query(
-      "SELECT * FROM customers WHERE mobile=$1",
-      [mobile]
-    );
+  const user = await pool.query(
+    "SELECT * FROM customers WHERE mobile=$1",
+    [mobile]
+  );
 
-    if (result.rows.length === 0)
-      return res.status(401).json({ message: "User not found" });
-
-    const user = result.rows[0];
-
-    if (user.reset_required)
-      return res.status(403).json({ message: "RESET_REQUIRED" });
-
-    const match = await bcrypt.compare(password, user.password);
-    if (!match)
-      return res.status(401).json({ message: "Invalid password" });
-
-    res.json({ success: true, customer_id: user.id });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+  if (user.rowCount === 0) {
+    return res.send("User not found. Please register.");
   }
+
+  if (user.rows[0].must_register) {
+    return res.send("Password reset by admin. Please register again.");
+  }
+
+  const match = await bcrypt.compare(password, user.rows[0].password);
+  if (!match) {
+    return res.send("Invalid password");
+  }
+
+  res.redirect("/customer");
+});
+
+/* ===================== CUSTOMER REGISTER ===================== */
+
+app.post("/register", async (req, res) => {
+  const { name, mobile, password } = req.body;
+  const hash = await bcrypt.hash(password, 10);
+
+  await pool.query(
+    `INSERT INTO customers (name, mobile, password, must_register)
+     VALUES ($1,$2,$3,false)
+     ON CONFLICT (mobile)
+     DO UPDATE SET password=$3, must_register=false`,
+    [name, mobile, hash]
+  );
+
+  res.redirect("/customer-login");
 });
 
 /* ===================== ADMIN RESET CUSTOMER ===================== */
-app.post("/admin-reset-customer", async (req, res) => {
-  const { customer_id } = req.body;
 
-  try {
-    await pool.query(
-      "UPDATE customers SET password=NULL, reset_required=true WHERE id=$1",
-      [customer_id]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false });
-  }
-});
-
-/* ===================== PAYMENTS ===================== */
-app.post("/payment", async (req, res) => {
-  const { customer_id, item, amount } = req.body;
-
-  try {
-    await pool.query(
-      `INSERT INTO payments (customer_id, item, amount)
-       VALUES ($1,$2,$3)`,
-      [customer_id, item, amount]
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false });
-  }
-});
-
-/* ===================== ADMIN DATA ===================== */
-app.get("/admin/customers", async (req, res) => {
-  const data = await pool.query("SELECT id,name,mobile,reset_required FROM customers");
-  res.json(data.rows);
-});
-
-app.get("/admin/payments", async (req, res) => {
-  const data = await pool.query(
-    `SELECT p.id,c.name,c.mobile,p.item,p.amount,p.created_at
-     FROM payments p
-     JOIN customers c ON c.id=p.customer_id
-     ORDER BY p.id DESC`
+app.post("/admin/reset/:mobile", async (req, res) => {
+  await pool.query(
+    "UPDATE customers SET must_register=true WHERE mobile=$1",
+    [req.params.mobile]
   );
-  res.json(data.rows);
+
+  res.redirect("/admin");
 });
 
 /* ===================== SERVER ===================== */
+
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);
