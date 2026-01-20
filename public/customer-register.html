@@ -1,7 +1,21 @@
-<h2>Customer Register</h2>
-<form method="POST" action="/customer-register">
-  <input name="name" placeholder="Name" required>
-  <input name="mobile" placeholder="Mobile" required>
-  <input name="password" type="password" required>
-  <button>Register</button>
-</form>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Customer Register</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Customer Registration</h2>
+
+  <form method="POST" action="/customer-register">
+    <input type="text" name="name" placeholder="Full Name" required><br><br>
+    <input type="text" name="phone" placeholder="Phone Number" required><br><br>
+    <input type="password" name="password" placeholder="Password" required><br><br>
+    <button type="submit">Register</button>
+  </form>
+
+  <br>
+  <a href="/customer-login">Already registered? Login</a><br>
+  <a href="/">Back to Home</a>
+</body>
+</html>

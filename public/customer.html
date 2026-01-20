@@ -1,15 +1,22 @@
-<h2>Vending Machine</h2>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Customer Page</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Welcome Customer</h1>
 
-<table border="1">
-<tr><th>Item</th><th>Price</th><th>Buy</th></tr>
-<tr>
-  <td>Chips</td><td>₹20</td>
-  <td><button onclick="buyItem('Chips',20)">Buy</button></td>
-</tr>
-<tr>
-  <td>Cold Drink</td><td>₹40</td>
-  <td><button onclick="buyItem('Cold Drink',40)">Buy</button></td>
-</tr>
-</table>
+  <h3>Select Items</h3>
+  <ul>
+    <li>Chips - ₹20</li>
+    <li>Cold Drink - ₹30</li>
+  </ul>
 
-<script src="script.js"></script>
+  <button>Buy</button><br><br>
+
+  <button onclick="location.href='/'">Logout</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
