@@ -5,6 +5,7 @@ const express = require("express");
 const { Pool } = require("pg");
 require("dotenv").config();
 const app = express();
+const PORT = process.env.PORT || 10000;
 
 // ==========================
 // MIDDLEWARE
@@ -13,6 +14,7 @@ app.use(express.json());
 const path = require('path');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
 // ================= GET ROUTES =================
 
 // Home page
