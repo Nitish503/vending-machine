@@ -1,17 +1,33 @@
 function buyItem(item, amount) {
-  const customer_id = localStorage.getItem("customer_id");
+  const customer_id = parseInt(localStorage.getItem("customer_id"));
 
   if (!customer_id) {
     alert("Login again");
-    location.href="/customer-login";
+    window.location.href = "/customer-login";
     return;
   }
 
-  fetch("/payment", {
+  fetch("/api/pay", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ customer_id, item, amount })
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      customer_id,
+      item,
+      amount
+    })
   })
-  .then(r => r.json())
-  .then(() => alert("Purchased"));
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("Payment failed");
+      } else {
+        alert("Purchase successful");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Server error");
+    });
 }

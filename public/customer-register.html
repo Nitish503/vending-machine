@@ -2,20 +2,22 @@
 <html>
 <head>
   <title>Customer Register</title>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Customer Registration</h2>
 
-  <form method="POST" action="/customer-register">
-    <input type="text" name="name" placeholder="Full Name" required><br><br>
-    <input type="text" name="phone" placeholder="Phone Number" required><br><br>
-    <input type="password" name="password" placeholder="Password" required><br><br>
-    <button type="submit">Register</button>
-  </form>
+<h2>Customer Registration</h2>
 
-  <br>
-  <a href="/customer-login">Already registered? Login</a><br>
-  <a href="/">Back to Home</a>
+<input type="text" id="name" placeholder="Name" required />
+<br><br>
+
+<input type="text" id="mobile" placeholder="Mobile Number" required />
+<br><br>
+
+<input type="password" id="password" placeholder="Password" required />
+<br><br>
+
+<button onclick="register()">Register</button>
+
+<script src="/js/register.js"></script>
 </body>
 </html>

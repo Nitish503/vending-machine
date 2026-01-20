@@ -50,6 +50,36 @@ app.get('/customer', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'customer.html'));
 });
 
+// payment logic to store in database
+
+app.post('/api/pay', async (req, res) => {
+  try {
+    const { customer_id, item, amount } = req.body;
+
+    if (!customer_id || !item || !amount) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
+
+    const query = `
+      INSERT INTO payments (customer_id, item, amount, status)
+      VALUES ($1, $2, $3, 'SUCCESS')
+      RETURNING *;
+    `;
+
+    const values = [customer_id, item, amount];
+    const result = await pool.query(query, values);
+
+    res.json({
+      message: 'Payment successful',
+      payment: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Payment failed' });
+  }
+});
+
 // ==========================
 // DATABASE CONNECTION
 // ==========================
@@ -143,25 +173,40 @@ app.post("/admin-login", (req, res) => {
 // ==========================
 // CUSTOMER REGISTER
 // ==========================
-app.post("/customer-register", async (req, res) => {
-  const { name, phone, password } = req.body;
+app.post("/api/register", async (req, res) => {
+  const { name, mobile, password } = req.body;
 
-  if (!name || !phone || !password) {
-    return res.status(400).send("Missing fields");
+  if (!name || !mobile || !password) {
+    return res.json({ error: "All fields are required" });
   }
 
   try {
-    await pool.query(
-      "INSERT INTO customers (name, phone, password) VALUES ($1,$2,$3)",
-      [name, phone, password]
+    // Check duplicate mobile
+    const check = await pool.query(
+      "SELECT id FROM customers WHERE mobile = $1",
+      [mobile]
     );
-    res.send("Customer registered successfully");
-  } catch (err) {
-    if (err.code === "23505") {
-      return res.status(400).send("Phone already registered");
+
+    if (check.rows.length > 0) {
+      return res.json({ error: "Mobile already registered" });
     }
+
+    // Insert customer
+    const result = await pool.query(
+      `INSERT INTO customers (name, mobile, password)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [name, mobile, password]
+    );
+
+    res.json({
+      message: "Registration successful",
+      customer_id: result.rows[0].id
+    });
+
+  } catch (err) {
     console.error(err);
-    res.status(500).send("Registration failed");
+    res.status(500).json({ error: "Database error" });
   }
 });
 
