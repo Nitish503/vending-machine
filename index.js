@@ -4,15 +4,27 @@
 const express = require("express");
 const { Pool } = require("pg");
 require("dotenv").config();
-
-const app = express();
+const path = require('path');
 
 // ==========================
 // MIDDLEWARE
 // ==========================
 app.use(express.json());
+const path = require('path');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+// ===== LOGIN PAGES (GET) =====
+
+// Customer login page
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Admin login page
+app.get('/admin-login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+});
 
 // ==========================
 // DATABASE CONNECTION
