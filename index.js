@@ -99,6 +99,28 @@ app.get("/", (req, res) => {
   res.send("Backend running");
 });
 
+// ===== ADMIN DATA APIs =====
+
+// Get all customers
+app.get("/api/customers", (req, res) => {
+  db.all("SELECT * FROM customers", [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
+});
+
+// Get all payments
+app.get("/api/payments", (req, res) => {
+  db.all("SELECT * FROM payments", [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
+});
+
 // ==========================
 // ADMIN LOGIN (UNCHANGED)
 // ==========================
@@ -109,7 +131,7 @@ app.post("/admin-login", (req, res) => {
     username === process.env.ADMIN_USER &&
     password === process.env.ADMIN_PASS
   ) {
-    return res.send("Admin login successful");
+    return res.redirect("/admin");
   }
 
   res.status(401).send("Invalid admin credentials");

@@ -1,17 +1,23 @@
-fetch("/admin-data")
-.then(r => r.json())
-.then(d => {
-  document.getElementById("customers").innerHTML =
-    d.customers.map(c =>
-      `${c.name} (${c.mobile})
-       <form method="POST" action="/reset-customer">
-         <input type="hidden" name="id" value="${c.id}">
-         <button>Reset</button>
-       </form><br>`
-    ).join("");
+// Fetch customers
+fetch("/api/customers")
+  .then(res => res.json())
+  .then(data => {
+    const list = document.getElementById("customers");
+    data.forEach(c => {
+      const li = document.createElement("li");
+      li.textContent = `${c.name} - ${c.email}`;
+      list.appendChild(li);
+    });
+  });
 
-  document.getElementById("payments").innerHTML =
-    d.payments.map(p =>
-      `${p.name} bought ${p.item} ₹${p.amount}<br>`
-    ).join("");
-});
+// Fetch payments
+fetch("/api/payments")
+  .then(res => res.json())
+  .then(data => {
+    const list = document.getElementById("payments");
+    data.forEach(p => {
+      const li = document.createElement("li");
+      li.textContent = `${p.amount} - ${p.status}`;
+      list.appendChild(li);
+    });
+  });
