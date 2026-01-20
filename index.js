@@ -4,7 +4,7 @@
 const express = require("express");
 const { Pool } = require("pg");
 require("dotenv").config();
-const path = require('path');
+const app = express();
 
 // ==========================
 // MIDDLEWARE
