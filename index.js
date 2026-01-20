@@ -13,17 +13,40 @@ app.use(express.json());
 const path = require('path');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+// ================= GET ROUTES =================
 
-// ===== LOGIN PAGES (GET) =====
-
-// Customer login page
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+// Home page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+// ================= ADMIN =================
 
 // Admin login page
 app.get('/admin-login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+});
+
+// Admin dashboard
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// ================= CUSTOMER =================
+
+// Customer login page
+app.get('/customer-login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'customer-login.html'));
+});
+
+// Customer register page
+app.get('/customer-register', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'customer-register.html'));
+});
+
+// Customer dashboard
+app.get('/customer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'customer.html'));
 });
 
 // ==========================
