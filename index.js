@@ -179,25 +179,54 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ error: "All fields required" });
     }
 
-    const existing = await pool.query(
-      "SELECT id FROM customers WHERE mobile = $1",
+    const exists = await pool.query(
+      "SELECT id FROM customers WHERE mobile=$1",
       [mobile]
     );
 
-    if (existing.rows.length > 0) {
+    if (exists.rows.length > 0) {
       return res.status(409).json({ error: "Mobile already registered" });
     }
 
     await pool.query(
-      "INSERT INTO customers (name, mobile, password) VALUES ($1, $2, $3)",
+      "INSERT INTO customers (name, mobile, password) VALUES ($1,$2,$3)",
       [name, mobile, password]
     );
 
-    res.json({ message: "Registered successfully" });
+    res.status(200).json({ success: true });
 
   } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ error: "Registration failed" });
+  }
+});
+
+/* ---------- ADMIN : GET CUSTOMERS ---------- */
+app.get("/api/customers", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, mobile, created_at FROM customers ORDER BY id DESC"
+    );
+    res.json(result.rows);
+  } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Failed to fetch customers" });
+  }
+});
+
+/* ---------- ADMIN : GET PAYMENTS ---------- */
+app.get("/api/payments", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT p.id, c.name, p.item, p.amount, p.created_at
+       FROM payments p
+       JOIN customers c ON p.customer_id = c.id
+       ORDER BY p.id DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch payments" });
   }
 });
 
