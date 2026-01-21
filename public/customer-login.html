@@ -5,16 +5,50 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
   <h2>Customer Login</h2>
 
-  <form method="POST" action="/customer-login">
-    <input type="text" name="phone" placeholder="Phone Number" required><br><br>
-    <input type="password" name="password" placeholder="Password" required><br><br>
-    <button type="submit">Login</button>
-  </form>
+  <input type="text" id="phone" placeholder="Phone Number" required><br><br>
+  <input type="password" id="password" placeholder="Password" required><br><br>
 
-  <br>
-  <a href="/customer-register">New user? Register</a><br>
+  <button onclick="login()">Login</button>
+
+  <br><br>
+  <a href="/customer-register.html">New user? Register</a><br>
   <a href="/">Back to Home</a>
+
+  <script>
+    function login() {
+      const phone = document.getElementById("phone").value;
+      const password = document.getElementById("password").value;
+
+      if (!phone || !password) {
+        alert("All fields required");
+        return;
+      }
+
+      fetch("/api/customer-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ phone, password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          localStorage.setItem("customer_id", data.customer_id);
+          window.location.href = "/customer.html";
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Login failed");
+      });
+    }
+  </script>
+
 </body>
 </html>
