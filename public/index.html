@@ -1,149 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Vending Machine</title>
+
+  <!-- Mobile support -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Bootstrap -->
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-  body {
-    min-height: 100vh;
-    background:
-      radial-gradient(circle at 10% 20%, rgba(0,123,255,0.25), transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(255,193,7,0.25), transparent 40%),
-      radial-gradient(circle at 50% 50%, rgba(40,167,69,0.15), transparent 45%),
-      linear-gradient(135deg, #f0f4ff, #fff7e6);
-    overflow-x: hidden;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI";
-  }
 
-  /* Navbar */
-  .navbar {
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.88);
-  }
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
 
-  /* Slider wrapper */
-  .carousel-container {
-    max-width: 900px;
-    margin: auto;
-    margin-top: 18vh;
-    padding: 20px;
-  }
+    .hero-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
 
-  /* Slider card */
-  .carousel {
-    border-radius: 18px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow:
-      0 30px 60px rgba(0,0,0,0.15),
-      inset 0 0 0 1px rgba(255,255,255,0.4);
-  }
-
-  .carousel img {
-    height: 450px;
-    object-fit: cover;
-    filter: saturate(1.05);
-  }
-
-  .carousel-caption {
-    background: linear-gradient(
-      to top,
-      rgba(0,0,0,0.65),
-      rgba(0,0,0,0.15)
-    );
-    border-radius: 14px;
-    padding: 14px;
-  }
-
-  .carousel-caption h4 {
-    font-weight: 600;
-  }
-
-  .carousel-caption p {
-    font-size: 0.95rem;
-  }
-
-  @media (max-width: 768px) {
     .carousel img {
-      height: 260px;
+      border-radius: 15px;
+      height: 320px;
+      object-fit: cover;
     }
-    .carousel-container {
-      margin-top: 14vh;
+
+    @media (max-width: 768px) {
+      .carousel img {
+        height: 220px;
+      }
     }
-  }
-</style>
-  
+  </style>
 </head>
 
 <body>
 
-<!-- 🔝 TOP NAV -->
-<nav class="navbar navbar-expand-lg fixed-top shadow-sm">
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top"
+     style="background: linear-gradient(90deg, #0d6efd, #6610f2);">
   <div class="container-fluid">
-    <span class="navbar-brand fw-bold">🥤 Vending Machine</span>
 
-    <div class="dropdown">
-      <button class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
-        ☰ Menu
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow">
-        <li><a class="dropdown-item" href="/admin-login">🧑‍💼 Admin Panel</a></li>
-        <li><a class="dropdown-item" href="/customer-login">👤 Customer Login</a></li>
-        <li><a class="dropdown-item" href="/customer-register">📝 Customer Register</a></li>
+    <a class="navbar-brand fw-bold" href="/">
+      🥤 Vending Machine
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#mainNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+      <ul class="navbar-nav">
+
+        <li class="nav-item">
+          <a class="nav-link" href="/customer-login">👤 Customer Login</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/customer-register">📝 Register</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link text-warning fw-semibold" href="/admin-login">
+            👑 Admin Panel
+          </a>
+        </li>
+
       </ul>
     </div>
   </div>
 </nav>
 
-<!-- 🖼️ CENTER SLIDER -->
-<div class="carousel-container">
+<!-- Spacer for fixed navbar -->
+<div style="height: 80px;"></div>
 
-  <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3500">
+<!-- ================= CENTER SECTION ================= -->
+<div class="container d-flex justify-content-center align-items-center">
+  <div class="col-md-8 col-lg-6 hero-card text-center">
 
-    <div class="carousel-inner">
+    <h2 class="fw-bold mb-3">🚀 Smart Vending Machine</h2>
+    <p class="mb-4">Fast • Secure • Cashless • Automated</p>
 
-      <div class="carousel-item active">
-        <img src="https://images.unsplash.com/photo-1580910051074-7c7e7d63f2c3" class="d-block w-100">
-        <div class="carousel-caption">
-          <h4>🥤 Smart Vending</h4>
-          <p>Fast • Secure • Cashless</p>
+    <!-- SLIDER -->
+    <div id="vendingSlider" class="carousel slide" data-bs-ride="carousel">
+
+      <div class="carousel-inner">
+
+        <div class="carousel-item active">
+          <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092"
+               class="d-block w-100" alt="Snacks">
         </div>
-      </div>
 
-      <div class="carousel-item">
-        <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092" class="d-block w-100">
-        <div class="carousel-caption">
-          <h4>🍟 Snacks & Drinks</h4>
-          <p>Anytime • Anywhere</p>
+        <div class="carousel-item">
+          <img src="https://images.unsplash.com/photo-1528731708534-816fe59f90cb"
+               class="d-block w-100" alt="Cold Drinks">
         </div>
-      </div>
 
-      <div class="carousel-item">
-        <img src="https://images.unsplash.com/photo-1583511655936-54b3b2f6f8c3" class="d-block w-100">
-        <div class="carousel-caption">
-          <h4>📊 Admin Control</h4>
-          <p>Customers • Payments • Reset</p>
+        <div class="carousel-item">
+          <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe"
+               class="d-block w-100" alt="Food">
         </div>
+
       </div>
 
     </div>
 
-    <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon"></span>
-    </button>
-
-    <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
-      <span class="carousel-control-next-icon"></span>
-    </button>
+    <p class="mt-4 small">
+      🔐 Secure login • 💳 Payment tracking • ⚙️ Admin control
+    </p>
 
   </div>
-
 </div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
