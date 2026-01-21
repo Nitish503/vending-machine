@@ -5,42 +5,75 @@
   <title>Vending Machine</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Bootstrap 5 -->
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
     body {
-      background: linear-gradient(135deg, #f1f3f5, #e9ecef);
       min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, #e3f2fd, transparent 40%),
+        radial-gradient(circle at bottom right, #fce4ec, transparent 40%),
+        linear-gradient(135deg, #f8f9fa, #e9ecef);
+      overflow-x: hidden;
     }
 
+    /* Navbar */
+    .navbar {
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.85);
+    }
+
+    /* Slider Container */
     .carousel-container {
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
-      margin-top: 15vh;
+      margin-top: 18vh;
+      padding: 20px;
+    }
+
+    /* Card feel */
+    .carousel {
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
     }
 
     .carousel img {
-      height: 420px;
+      height: 450px;
       object-fit: cover;
+    }
+
+    .carousel-caption {
+      background: rgba(0,0,0,0.45);
       border-radius: 12px;
+      padding: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .carousel img {
+        height: 260px;
+      }
+      .carousel-container {
+        margin-top: 14vh;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<!-- 🔝 NAVBAR -->
-<nav class="navbar navbar-light bg-white shadow-sm fixed-top">
+<!-- 🔝 TOP NAV -->
+<nav class="navbar navbar-expand-lg fixed-top shadow-sm">
   <div class="container-fluid">
     <span class="navbar-brand fw-bold">🥤 Vending Machine</span>
 
-    <!-- 🔘 CORNER MENU -->
     <div class="dropdown">
-      <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+      <button class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
         ☰ Menu
       </button>
-      <ul class="dropdown-menu dropdown-menu-end">
+      <ul class="dropdown-menu dropdown-menu-end shadow">
         <li><a class="dropdown-item" href="/admin">🧑‍💼 Admin Panel</a></li>
         <li><a class="dropdown-item" href="/customer-login">👤 Customer Login</a></li>
         <li><a class="dropdown-item" href="/customer-register">📝 Customer Register</a></li>
@@ -49,44 +82,44 @@
   </div>
 </nav>
 
-<!-- 🖼️ IMAGE SLIDER (CENTER ONLY) -->
+<!-- 🖼️ CENTER SLIDER -->
 <div class="carousel-container">
 
-  <div id="vendingCarousel" class="carousel slide shadow" data-bs-ride="carousel" data-bs-interval="3000">
+  <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3500">
 
     <div class="carousel-inner">
 
       <div class="carousel-item active">
         <img src="https://images.unsplash.com/photo-1580910051074-7c7e7d63f2c3" class="d-block w-100">
-        <div class="carousel-caption d-none d-md-block">
-          <h5>🥤 Smart Vending</h5>
-          <p>Fast • Cashless • Secure</p>
+        <div class="carousel-caption">
+          <h4>🥤 Smart Vending</h4>
+          <p>Fast • Secure • Cashless</p>
         </div>
       </div>
 
       <div class="carousel-item">
         <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092" class="d-block w-100">
-        <div class="carousel-caption d-none d-md-block">
-          <h5>🍟 Snacks & Drinks</h5>
+        <div class="carousel-caption">
+          <h4>🍟 Snacks & Drinks</h4>
           <p>Anytime • Anywhere</p>
         </div>
       </div>
 
       <div class="carousel-item">
         <img src="https://images.unsplash.com/photo-1583511655936-54b3b2f6f8c3" class="d-block w-100">
-        <div class="carousel-caption d-none d-md-block">
-          <h5>📊 Admin Control</h5>
-          <p>Track • Manage • Reset</p>
+        <div class="carousel-caption">
+          <h4>📊 Admin Control</h4>
+          <p>Customers • Payments • Reset</p>
         </div>
       </div>
 
     </div>
 
-    <!-- Controls -->
-    <button class="carousel-control-prev" type="button" data-bs-target="#vendingCarousel" data-bs-slide="prev">
+    <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
       <span class="carousel-control-prev-icon"></span>
     </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#vendingCarousel" data-bs-slide="next">
+
+    <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
       <span class="carousel-control-next-icon"></span>
     </button>
 
@@ -94,8 +127,6 @@
 
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
