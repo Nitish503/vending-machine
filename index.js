@@ -133,25 +133,31 @@ app.get("/", (req, res) => {
 });
 
 // ===== ADMIN DATA APIs =====
-
-// Get all customers
-app.get("/api/customers", (req, res) => {
-  db.all("SELECT * FROM customers", [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(rows);
-  });
+app.get("/api/customers", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, mobile, created_at FROM customers ORDER BY id DESC"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch customers" });
+  }
 });
 
-// Get all payments
-app.get("/api/payments", (req, res) => {
-  db.all("SELECT * FROM payments", [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(rows);
-  });
+app.get("/api/payments", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT p.id, c.name, p.item, p.amount, p.created_at
+       FROM payments p
+       JOIN customers c ON p.customer_id = c.id
+       ORDER BY p.id DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch payments" });
+  }
 });
 
 // ==========================
