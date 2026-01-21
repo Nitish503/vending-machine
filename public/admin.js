@@ -8,20 +8,17 @@ fetch("/api/customers")
     customers.forEach(c => {
       const li = document.createElement("li");
 
-      // If password is NULL → disable reset
       if (c.password === null) {
         li.innerHTML = `
           ${c.name} - ${c.mobile}
-          <button disabled>
-            Reset Required
-          </button>
+          <strong style="color:red;">[RE-REGISTER REQUIRED]</strong>
+          <button disabled>Reset</button>
         `;
       } else {
         li.innerHTML = `
           ${c.name} - ${c.mobile}
-          <button onclick="resetPassword(${c.id})">
-            Reset Password
-          </button>
+          <strong style="color:green;">[ACTIVE]</strong>
+          <button onclick="resetPassword(${c.id})">Reset</button>
         `;
       }
 

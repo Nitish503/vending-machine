@@ -155,7 +155,7 @@ app.get("/api/payments", async (req, res) => {
   }
 });
 
-// newly self added
+// RESET PASSWORD ROUTES
 app.post("/api/admin/reset-password/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -170,6 +170,39 @@ app.post("/api/admin/reset-password/:id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// AUTO ENABLE self added
+app.post("/api/customer/register", async (req, res) => {
+  const { name, mobile, password } = req.body;
+
+  try {
+    // If customer already exists → update password (re-register)
+    const existing = await pool.query(
+      "SELECT id FROM customers WHERE mobile = $1",
+      [mobile]
+    );
+
+    if (existing.rows.length > 0) {
+      await pool.query(
+        "UPDATE customers SET name=$1, password=$2 WHERE mobile=$3",
+        [name, password, mobile]
+      );
+
+      return res.json({ message: "Re-registered successfully" });
+    }
+
+    // New customer
+    await pool.query(
+      "INSERT INTO customers (name, mobile, password) VALUES ($1, $2, $3)",
+      [name, mobile, password]
+    );
+
+    res.json({ message: "Registered successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Registration failed" });
   }
 });
 
