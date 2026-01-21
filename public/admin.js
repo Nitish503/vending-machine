@@ -1,6 +1,19 @@
 // ==============================
 // Fetch Customers
 // ==============================
+function resetPassword(customerId) {
+  if (!confirm("Reset customer password?")) return;
+
+  fetch(`/api/admin/reset-password/${customerId}`, {
+    method: "POST"
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("Password reset");
+    location.reload();
+  });
+}
+// new
 fetch("/api/customers")
   .then(res => res.json())
   .then(data => {

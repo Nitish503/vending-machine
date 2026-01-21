@@ -155,6 +155,24 @@ app.get("/api/payments", async (req, res) => {
   }
 });
 
+// newly self added
+app.post("/api/admin/reset-password/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    await pool.query(
+      "UPDATE customers SET password = NULL WHERE id = $1",
+      [id]
+    );
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // ==========================
 // ADMIN LOGIN (UNCHANGED)
 // ==========================
@@ -238,27 +256,33 @@ app.post("/api/customer-login", async (req, res) => {
   try {
     const { mobile, password } = req.body;
 
-    if (!mobile || !password) {
-      return res.status(400).json({ error: "Mobile and password required" });
-    }
-
     const result = await pool.query(
-      "SELECT id FROM customers WHERE mobile = $1 AND password = $2",
-      [mobile, password]
+      "SELECT id, password FROM customers WHERE mobile = $1",
+      [mobile]
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: "Invalid mobile or password" });
+      return res.json({ error: "Invalid mobile number" });
     }
 
-    res.json({ customer_id: result.rows[0].id });
+    const customer = result.rows[0];
+
+    // 🔴 Password reset by admin
+    if (customer.password === null) {
+      return res.json({ resetRequired: true });
+    }
+
+    if (customer.password !== password) {
+      return res.json({ error: "Invalid password" });
+    }
+
+    res.json({ customer_id: customer.id });
 
   } catch (err) {
-    console.error("Login error:", err);
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
-
 // ==========================
 // PAYMENT SAVE (NEW & REQUIRED)
 // ==========================
