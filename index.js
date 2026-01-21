@@ -170,43 +170,34 @@ app.post("/admin-login", (req, res) => {
   res.status(401).send("Invalid admin credentials");
 });
 
-// ==========================
-// CUSTOMER REGISTER
-// ==========================
-app.post("/api/register", async (req, res) => {
-  const { name, mobile, password } = req.body;
-
-  if (!name || !mobile || !password) {
-    return res.json({ error: "All fields are required" });
-  }
-
+/* ---------- CUSTOMER REGISTER ---------- */
+app.post("/register", async (req, res) => {
   try {
-    // Check duplicate mobile
-    const check = await pool.query(
+    const { name, mobile, password } = req.body;
+
+    if (!name || !mobile || !password) {
+      return res.status(400).json({ error: "All fields required" });
+    }
+
+    const existing = await pool.query(
       "SELECT id FROM customers WHERE mobile = $1",
       [mobile]
     );
 
-    if (check.rows.length > 0) {
-      return res.json({ error: "Mobile already registered" });
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: "Mobile already registered" });
     }
 
-    // Insert customer
-    const result = await pool.query(
-      `INSERT INTO customers (name, mobile, password)
-       VALUES ($1, $2, $3)
-       RETURNING id`,
+    await pool.query(
+      "INSERT INTO customers (name, mobile, password) VALUES ($1, $2, $3)",
       [name, mobile, password]
     );
 
-    res.json({
-      message: "Registration successful",
-      customer_id: result.rows[0].id
-    });
+    res.json({ message: "Registered successfully" });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
