@@ -8,12 +8,22 @@ fetch("/api/customers")
     customers.forEach(c => {
       const li = document.createElement("li");
 
-      li.innerHTML = `
-        ${c.name} - ${c.mobile}
-        <button onclick="resetPassword(${c.id})">
-          Reset Password
-        </button>
-      `;
+      // If password is NULL → disable reset
+      if (c.password === null) {
+        li.innerHTML = `
+          ${c.name} - ${c.mobile}
+          <button disabled>
+            Reset Required
+          </button>
+        `;
+      } else {
+        li.innerHTML = `
+          ${c.name} - ${c.mobile}
+          <button onclick="resetPassword(${c.id})">
+            Reset Password
+          </button>
+        `;
+      }
 
       list.appendChild(li);
     });
