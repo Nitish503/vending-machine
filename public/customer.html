@@ -45,37 +45,37 @@
 </nav>
 
 <div class="container mt-4">
-
-  <h4 class="text-white mb-4 text-center">🛒 Select Item</h4>
-
   <div class="row g-4">
 
-    <!-- Chips -->
+    <!-- Chips Card -->
     <div class="col-12 col-md-6">
-      <div class="card text-center p-3">
+      <div class="card shadow text-center p-3">
         <h5>🍟 Chips</h5>
         <p class="text-muted">Crunchy snack</p>
         <h4>₹20</h4>
-        <button class="btn btn-primary buy-btn mt-2" onclick="buyItem('Chips', 20)">
-          🛍 Buy
+        <button
+          class="btn btn-primary buy-btn mt-2"
+          onclick="buyItem('Chips', 20)">
+          🛒 Buy
         </button>
       </div>
     </div>
 
-    <!-- Cold Drink -->
+    <!-- Cold Drink Card -->
     <div class="col-12 col-md-6">
-      <div class="card text-center p-3">
+      <div class="card shadow text-center p-3">
         <h5>🥤 Cold Drink</h5>
         <p class="text-muted">Chilled refreshment</p>
         <h4>₹30</h4>
-        <button class="btn btn-success buy-btn mt-2" onclick="buyItem('Cold Drink', 30)">
-          🛍 Buy
+        <button
+          class="btn btn-success buy-btn mt-2"
+          onclick="buyItem('Cold Drink', 30)">
+          🛒 Buy
         </button>
       </div>
     </div>
 
   </div>
-
 </div>
 
 <!-- Bottom Nav -->
@@ -84,32 +84,38 @@
 </div>
 
 <script>
+  // Get logged-in customer ID
   const customerId = localStorage.getItem("customer_id");
 
+  // If not logged in, redirect
   if (!customerId) {
     window.location.href = "/customer-login";
   }
 
   async function buyItem(item, amount) {
     try {
-      const res = await fetch("/api/payment", {
+      const response = await fetch("/api/payment", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
-          customerId,
-          item,
-          amount
+          customerId: Number(customerId), // ✅ VERY IMPORTANT
+          item: item,
+          amount: amount
         })
       });
 
-      if (!res.ok) {
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(errorText);
         alert("❌ Payment failed");
         return;
       }
 
-      alert(`✅ ${item} purchased successfully!`);
-
-    } catch (err) {
+      alert(`✅ ${item} purchased successfully`);
+    } catch (error) {
+      console.error(error);
       alert("❌ Server error");
     }
   }
