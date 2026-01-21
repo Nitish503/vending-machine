@@ -6,49 +6,58 @@
 </head>
 <body>
 
-  <h2>Customer Login</h2>
+<h2>Customer Login</h2>
 
-  <input type="text" id="phone" placeholder="Phone Number" required><br><br>
-  <input type="password" id="password" placeholder="Password" required><br><br>
+<form id="loginForm">
+  <input
+    type="text"
+    id="mobile"
+    placeholder="Mobile Number"
+    required
+  /><br><br>
 
-  <button onclick="login()">Login</button>
+  <input
+    type="password"
+    id="password"
+    placeholder="Password"
+    required
+  /><br><br>
 
-  <br><br>
-  <a href="/customer-register.html">New user? Register</a><br>
-  <a href="/">Back to Home</a>
+  <button type="submit">Login</button>
+</form>
 
-  <script>
-    function login() {
-      const phone = document.getElementById("phone").value;
-      const password = document.getElementById("password").value;
+<br>
+<a href="/customer-register.html">New user? Register</a>
 
-      if (!phone || !password) {
-        alert("All fields required");
-        return;
-      }
+<script>
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      fetch("/api/customer-login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ phone, password })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          alert(data.error);
-        } else {
-          localStorage.setItem("customer_id", data.customer_id);
-          window.location.href = "/customer.html";
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Login failed");
-      });
+  const mobile = document.getElementById("mobile").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const res = await fetch("/api/customer-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile, password })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+    } else {
+      localStorage.setItem("customer_id", data.customer_id);
+      window.location.href = "/customer.html";
     }
-  </script>
+
+  } catch (err) {
+    alert("Login failed");
+    console.error(err);
+  }
+});
+</script>
 
 </body>
 </html>

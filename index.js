@@ -51,34 +51,28 @@ app.get('/customer', (req, res) => {
 });
 
 // payment logic to store in database
-
-app.post('/api/pay', async (req, res) => {
+app.post("/api/payments", async (req, res) => {
   try {
     const { customer_id, item, amount } = req.body;
 
     if (!customer_id || !item || !amount) {
-      return res.status(400).json({ error: 'Missing fields' });
+      return res.status(400).json({ error: "Missing fields" });
     }
 
-    const query = `
-      INSERT INTO payments (customer_id, item, amount, status)
-      VALUES ($1, $2, $3, 'SUCCESS')
-      RETURNING *;
-    `;
+    const result = await pool.query(
+      `INSERT INTO payments (customer_id, item, amount)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [customer_id, item, amount]
+    );
 
-    const values = [customer_id, item, amount];
-    const result = await pool.query(query, values);
-
-    res.json({
-      message: 'Payment successful',
-      payment: result.rows[0]
-    });
-
+    res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Payment failed' });
+    console.error("Payment error:", err);
+    res.status(500).json({ error: "Payment failed" });
   }
 });
+
 
 // ==========================
 // DATABASE CONNECTION
@@ -109,13 +103,14 @@ async function initDB() {
     // Payments table (✅ MISSING EARLIER – NOW FIXED)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS payments (
-        id SERIAL PRIMARY KEY,
-        customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
-        item TEXT NOT NULL,
-        amount INTEGER NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
+  item TEXT NOT NULL,
+  amount NUMERIC(10,2) NOT NULL,
+  status TEXT DEFAULT 'SUCCESS',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+`);
 
     console.log("✅ Database tables ready (customers, payments)");
   } catch (err) {
@@ -239,23 +234,28 @@ app.get("/api/payments", async (req, res) => {
 // ==========================
 // CUSTOMER LOGIN
 // ==========================
-app.post("/customer-login", async (req, res) => {
-  const { phone, password } = req.body;
-
+app.post("/api/customer-login", async (req, res) => {
   try {
+    const { mobile, password } = req.body;
+
+    if (!mobile || !password) {
+      return res.status(400).json({ error: "Mobile and password required" });
+    }
+
     const result = await pool.query(
-      "SELECT * FROM customers WHERE phone=$1 AND password=$2",
-      [phone, password]
+      "SELECT id FROM customers WHERE mobile = $1 AND password = $2",
+      [mobile, password]
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).send("Invalid credentials");
+      return res.status(401).json({ error: "Invalid mobile or password" });
     }
 
-    res.send("Customer login successful");
+    res.json({ customer_id: result.rows[0].id });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Login error");
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
