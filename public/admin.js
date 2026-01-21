@@ -1,44 +1,50 @@
-async function loadCustomers() {
-  const res = await fetch("/api/customers");
-  const customers = await res.json();
+// Fetch customers
+fetch("/api/customers")
+  .then(res => res.json())
+  .then(customers => {
+    const list = document.getElementById("customers");
+    list.innerHTML = "";
 
-  const list = document.getElementById("customers");
-  list.innerHTML = "";
+    customers.forEach(c => {
+      const li = document.createElement("li");
 
-  customers.forEach(c => {
-    const li = document.createElement("li");
+      li.innerHTML = `
+        ${c.name} - ${c.mobile}
+        <button onclick="resetPassword(${c.id})">
+          Reset Password
+        </button>
+      `;
 
-    const isActive = c.password !== null;
-
-    li.innerHTML = `
-      ${c.name} - ${c.mobile}
-      <strong style="color:${isActive ? "green" : "red"}">
-        [${isActive ? "ACTIVE" : "RESET REQUIRED"}]
-      </strong>
-      <button
-        onclick="resetPassword(${c.id})"
-        ${!isActive ? "disabled" : ""}
-      >
-        Reset
-      </button>
-    `;
-
-    list.appendChild(li);
+      list.appendChild(li);
+    });
   });
-}
 
-async function resetPassword(customerId) {
-  if (!confirm("Reset password for this customer?")) return;
 
-  await fetch(`/api/reset-password/${customerId}`, {
+// Fetch payments
+fetch("/api/payments")
+  .then(res => res.json())
+  .then(payments => {
+    const list = document.getElementById("payments");
+    list.innerHTML = "";
+
+    payments.forEach(p => {
+      const li = document.createElement("li");
+      li.textContent = `${p.item} - ₹${p.amount}`;
+      list.appendChild(li);
+    });
+  });
+
+
+// Reset password function
+function resetPassword(customerId) {
+  if (!confirm("Reset this customer's password?")) return;
+
+  fetch(`/api/admin/reset-password/${customerId}`, {
     method: "POST"
-  });
-
-  alert("Password reset successfully");
-
-  // 🔴 THIS WAS MISSING BEFORE
-  loadCustomers(); // refresh UI
+  })
+    .then(res => res.json())
+    .then(() => {
+      alert("Password reset successfully");
+      location.reload();
+    });
 }
-
-// initial load
-loadCustomers();

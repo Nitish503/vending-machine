@@ -1,74 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
   <title>Customer Login</title>
-  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h2>Customer Login</h2>
+<h2>Customer Login</h2>
 
-  <form id="loginForm">
-    <input
-      type="text"
-      id="mobile"
-      placeholder="Mobile Number"
-      required
-    /><br><br>
+<form id="loginForm">
+  <input type="text" id="mobile" placeholder="Mobile Number" required />
+  <br><br>
+  <input type="password" id="password" placeholder="Password" required />
+  <br><br>
+  <button type="submit">Login</button>
+</form>
 
-    <input
-      type="password"
-      id="password"
-      placeholder="Password"
-      required
-    /><br><br>
+<br>
+<a href="/forgot-password.html">Forgot Password?</a>
 
-    <button type="submit">Login</button>
-  </form>
+<script>
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-  <br>
-  <a href="/customer-register">New user? Register</a>
+  const mobile = document.getElementById("mobile").value;
+  const password = document.getElementById("password").value;
 
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+  const res = await fetch("/api/customer-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mobile, password })
+  });
 
-      const mobile = document.getElementById("mobile").value;
-      const password = document.getElementById("password").value;
+  const data = await res.json();
 
-      try {
-        const res = await fetch("/api/customer-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile, password })
-        });
+  if (data.resetRequired) {
+    alert("Password reset by admin. Please register again.");
+    window.location.href = "/customer-register.html";
+    return;
+  }
 
-        const data = await res.json();
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
 
-        // Password was reset by admin
-        if (data.reRegister) {
-          alert("Your password was reset by admin. Please re-register.");
-          window.location.href = "/customer-register";
-          return;
-        }
-
-        // Successful login
-        if (data.success) {
-          localStorage.setItem("customer_id", data.customerId);
-          window.location.href = "/customer";
-          return;
-        }
-
-        // Any other error
-        alert(data.error || "Login failed");
-
-      } catch (err) {
-        alert("Server error");
-        console.error(err);
-      }
-    });
-  </script>
+  localStorage.setItem("customer_id", data.customer_id);
+  window.location.href = "/customer.html";
+});
+</script>
 
 </body>
 </html>
