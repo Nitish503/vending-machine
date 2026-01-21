@@ -1,50 +1,29 @@
-// Fetch customers
 fetch("/api/customers")
   .then(res => res.json())
-  .then(customers => {
+  .then(data => {
     const list = document.getElementById("customers");
-    list.innerHTML = "";
 
-    customers.forEach(c => {
-      const li = document.createElement("li");
+    data.forEach(c => {
+      const li = document.createElement("div");
+      li.className = "list-item";
+
+      const status = c.password === null
+        ? '<span class="status-reset">RESET</span>'
+        : '<span class="status-active">ACTIVE</span>';
+
+      const btn = c.password === null
+        ? ''
+        : `<button class="small-btn" onclick="reset(${c.id})">Reset</button>`;
 
       li.innerHTML = `
-        ${c.name} - ${c.mobile}
-        <button onclick="resetPassword(${c.id})">
-          Reset Password
-        </button>
+        ${c.name} - ${c.mobile} ${status}
+        ${btn}
       `;
-
       list.appendChild(li);
     });
   });
 
-
-// Fetch payments
-fetch("/api/payments")
-  .then(res => res.json())
-  .then(payments => {
-    const list = document.getElementById("payments");
-    list.innerHTML = "";
-
-    payments.forEach(p => {
-      const li = document.createElement("li");
-      li.textContent = `${p.item} - ₹${p.amount}`;
-      list.appendChild(li);
-    });
-  });
-
-
-// Reset password function
-function resetPassword(customerId) {
-  if (!confirm("Reset this customer's password?")) return;
-
-  fetch(`/api/admin/reset-password/${customerId}`, {
-    method: "POST"
-  })
-    .then(res => res.json())
-    .then(() => {
-      alert("Password reset successfully");
-      location.reload();
-    });
+function reset(id) {
+  fetch(`/api/admin/reset-password/${id}`, { method: "POST" })
+    .then(() => location.reload());
 }

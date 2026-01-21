@@ -1,53 +1,39 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Customer Login</title>
-</head>
 <body>
+  <div class="container">
+    <h2>Customer Login</h2>
 
-<h2>Customer Login</h2>
+    <input id="mobile" placeholder="Mobile Number" />
+    <input id="password" type="password" placeholder="Password" />
 
-<form id="loginForm">
-  <input type="text" id="mobile" placeholder="Mobile Number" required />
-  <br><br>
-  <input type="password" id="password" placeholder="Password" required />
-  <br><br>
-  <button type="submit">Login</button>
-</form>
+    <button onclick="login()">Login</button>
 
-<br>
-<a href="/forgot-password.html">Forgot Password?</a>
+    <div class="link">
+      <a href="/customer-register">New user? Register</a>
+    </div>
+  </div>
 
-<script>
-document.getElementById("loginForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
+  <script>
+    async function login() {
+      const mobile = document.getElementById("mobile").value;
+      const password = document.getElementById("password").value;
 
-  const mobile = document.getElementById("mobile").value;
-  const password = document.getElementById("password").value;
+      const res = await fetch("/api/customer-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, password })
+      });
 
-  const res = await fetch("/api/customer-login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mobile, password })
-  });
+      const data = await res.json();
 
-  const data = await res.json();
-
-  if (data.resetRequired) {
-    alert("Password reset by admin. Please register again.");
-    window.location.href = "/customer-register.html";
-    return;
-  }
-
-  if (data.error) {
-    alert(data.error);
-    return;
-  }
-
-  localStorage.setItem("customer_id", data.customer_id);
-  window.location.href = "/customer.html";
-});
-</script>
-
+      if (data.resetRequired) {
+        alert("Password reset by admin. Please re-register.");
+        window.location.href = "/customer-register";
+      } else if (data.customer_id) {
+        localStorage.setItem("customer_id", data.customer_id);
+        window.location.href = "/customer";
+      } else {
+        alert(data.error);
+      }
+    }
+  </script>
 </body>
-</html>

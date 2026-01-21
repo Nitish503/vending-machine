@@ -1,37 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Customer Page</title>
-  <link rel="stylesheet" href="style.css">
-</head>
 <body>
+  <div class="container">
+    <h2>Select Item</h2>
 
-  <h1>Welcome Customer</h1>
+    <button onclick="buy('Cold Drink', 30)">Cold Drink – ₹30</button>
+    <button onclick="buy('Chips', 20)">Chips – ₹20</button>
 
-  <h3>Select Items</h3>
-  <ul>
-    <li>
-      Chips - ₹20
-      <button onclick="buyItem('Chips', 20)">Buy</button>
-    </li>
-    <li>
-      Cold Drink - ₹30
-      <button onclick="buyItem('Cold Drink', 30)">Buy</button>
-    </li>
-  </ul>
-
-  <br>
-
-  <button onclick="logout()">Logout</button>
-
-  <script src="script.js"></script>
+    <div class="link">
+      <a href="/">Logout</a>
+    </div>
+  </div>
 
   <script>
-    function logout() {
-      localStorage.removeItem("customer_id");
-      window.location.href = "/customer-login.html";
+    async function buy(item, amount) {
+      const customer_id = localStorage.getItem("customer_id");
+
+      if (!customer_id) {
+        alert("Login again");
+        window.location.href = "/customer-login";
+        return;
+      }
+
+      await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId: customer_id, item, amount })
+      });
+
+      alert("Payment successful");
     }
   </script>
-
 </body>
-</html>
