@@ -102,6 +102,7 @@ app.post("/admin-login", (req, res) => {
 // ==========================
 // CUSTOMER REGISTER
 // ==========================
+
 app.post("/register", async (req, res) => {
   try {
     const { name, mobile, password } = req.body;
@@ -110,21 +111,35 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ error: "All fields required" });
     }
 
-    const exists = await pool.query(
-      "SELECT id FROM customers WHERE mobile=$1",
+    // Check existing customer
+    const result = await pool.query(
+      "SELECT id, password FROM customers WHERE mobile = $1",
       [mobile]
     );
 
-    if (exists.rows.length > 0) {
+    // Case 1: Customer exists AND password is NULL → re-registration allowed
+    if (result.rows.length > 0 && result.rows[0].password === null) {
+      await pool.query(
+        "UPDATE customers SET name = $1, password = $2 WHERE mobile = $3",
+        [name, password, mobile]
+      );
+
+      return res.json({ success: true, reRegistered: true });
+    }
+
+    // Case 2: Customer exists and password NOT NULL → block
+    if (result.rows.length > 0) {
       return res.status(409).json({ error: "Already registered" });
     }
 
+    // Case 3: New customer
     await pool.query(
-      "INSERT INTO customers (name, mobile, password) VALUES ($1,$2,$3)",
+      "INSERT INTO customers (name, mobile, password) VALUES ($1, $2, $3)",
       [name, mobile, password]
     );
 
     res.json({ success: true });
+
   } catch (err) {
     console.error("REGISTER ERROR:", err);
     res.status(500).json({ error: "Registration failed" });
