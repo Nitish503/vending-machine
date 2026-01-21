@@ -1,76 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Customer Dashboard</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
 
   <style>
     body {
+      background: linear-gradient(135deg, #1d2671, #c33764);
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      padding-bottom: 80px;
-    }
-
-    .navbar {
-      border-radius: 0 0 20px 20px;
+      color: #fff;
     }
 
     .card {
-      border-radius: 20px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
-    .buy-btn {
-      border-radius: 12px;
-      font-weight: 600;
+    .price {
+      font-size: 1.5rem;
+      font-weight: bold;
     }
 
     .logout-btn {
-      border-radius: 12px;
+      position: fixed;
+      top: 15px;
+      right: 15px;
     }
   </style>
 </head>
 
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-dark bg-dark px-3">
-  <span class="navbar-brand">🥤 Vending Machine</span>
-  <button class="btn btn-outline-light btn-sm logout-btn" onclick="logout()">🚪 Logout</button>
-</nav>
+<!-- Logout -->
+<button class="btn btn-dark logout-btn" onclick="logout()">🚪 Logout</button>
 
-<div class="container mt-4">
-  <div class="row g-4">
+<div class="container py-5">
+  <h2 class="text-center mb-4">🧃 Vending Machine</h2>
 
-    <!-- Chips Card -->
-    <div class="col-12 col-md-6">
-      <div class="card shadow text-center p-3">
+  <div class="row g-4 justify-content-center">
+
+    <!-- Chips -->
+    <div class="col-md-5">
+      <div class="card text-dark p-4">
         <h5>🍟 Chips</h5>
         <p class="text-muted">Crunchy snack</p>
-        <h4>₹20</h4>
-        <button
-          class="btn btn-primary buy-btn mt-2"
+        <div class="price">₹20</div>
+        <button class="btn btn-primary mt-3"
           onclick="buyItem('Chips', 20)">
-          🛒 Buy
+          Buy
         </button>
       </div>
     </div>
 
-    <!-- Cold Drink Card -->
-    <div class="col-12 col-md-6">
-      <div class="card shadow text-center p-3">
+    <!-- Cold Drink -->
+    <div class="col-md-5">
+      <div class="card text-dark p-4">
         <h5>🥤 Cold Drink</h5>
         <p class="text-muted">Chilled refreshment</p>
-        <h4>₹30</h4>
-        <button
-          class="btn btn-success buy-btn mt-2"
+        <div class="price">₹30</div>
+        <button class="btn btn-success mt-3"
           onclick="buyItem('Cold Drink', 30)">
-          🛒 Buy
+          Buy
         </button>
       </div>
     </div>
@@ -78,46 +75,38 @@
   </div>
 </div>
 
-<!-- Bottom Nav -->
-<div class="position-fixed bottom-0 start-0 end-0 p-3 bg-dark text-center">
-  <span class="text-white small">💳 Payments are recorded automatically</span>
-</div>
-
 <script>
-  // Get logged-in customer ID
+  // customer id saved during login
   const customerId = localStorage.getItem("customer_id");
 
-  // If not logged in, redirect
   if (!customerId) {
+    alert("Please login again");
     window.location.href = "/customer-login";
   }
 
-  async function buyItem(item, amount) {
-    try {
-      const response = await fetch("/api/payment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          customerId: Number(customerId), // ✅ VERY IMPORTANT
-          item: item,
-          amount: amount
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(errorText);
-        alert("❌ Payment failed");
-        return;
-      }
-
-      alert(`✅ ${item} purchased successfully`);
-    } catch (error) {
-      console.error(error);
-      alert("❌ Server error");
-    }
+  function buyItem(item, amount) {
+    fetch("/api/payments", {   // ✅ CORRECT ROUTE (PLURAL)
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        customer_id: customerId,
+        item: item,
+        amount: amount
+      })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Payment failed");
+      return res.json();
+    })
+    .then(() => {
+      alert("✅ Payment successful!");
+    })
+    .catch(err => {
+      console.error(err);
+      alert("❌ Payment failed");
+    });
   }
 
   function logout() {
