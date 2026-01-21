@@ -5,18 +5,33 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
   <h1>Welcome Customer</h1>
 
   <h3>Select Items</h3>
   <ul>
-    <li>Chips - ₹20</li>
-    <li>Cold Drink - ₹30</li>
+    <li>
+      Chips - ₹20
+      <button onclick="buyItem('Chips', 20)">Buy</button>
+    </li>
+    <li>
+      Cold Drink - ₹30
+      <button onclick="buyItem('Cold Drink', 30)">Buy</button>
+    </li>
   </ul>
 
-  <button>Buy</button><br><br>
+  <br>
 
-  <button onclick="location.href='/'">Logout</button>
+  <button onclick="logout()">Logout</button>
 
   <script src="script.js"></script>
+
+  <script>
+    function logout() {
+      localStorage.removeItem("customer_id");
+      window.location.href = "/customer-login.html";
+    }
+  </script>
+
 </body>
 </html>
