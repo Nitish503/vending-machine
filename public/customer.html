@@ -1,32 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Dashboard</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      padding-bottom: 80px;
+    }
+
+    .navbar {
+      border-radius: 0 0 20px 20px;
+    }
+
+    .card {
+      border-radius: 20px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+    }
+
+    .buy-btn {
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .logout-btn {
+      border-radius: 12px;
+    }
+  </style>
+</head>
+
 <body>
-  <div class="container">
-    <h2>Select Item</h2>
 
-    <button onclick="buy('Cold Drink', 30)">Cold Drink – ₹30</button>
-    <button onclick="buy('Chips', 20)">Chips – ₹20</button>
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-dark px-3">
+  <span class="navbar-brand">🥤 Vending Machine</span>
+  <button class="btn btn-outline-light btn-sm logout-btn" onclick="logout()">🚪 Logout</button>
+</nav>
 
-    <div class="link">
-      <a href="/">Logout</a>
+<div class="container mt-4">
+
+  <h4 class="text-white mb-4 text-center">🛒 Select Item</h4>
+
+  <div class="row g-4">
+
+    <!-- Chips -->
+    <div class="col-12 col-md-6">
+      <div class="card text-center p-3">
+        <h5>🍟 Chips</h5>
+        <p class="text-muted">Crunchy snack</p>
+        <h4>₹20</h4>
+        <button class="btn btn-primary buy-btn mt-2" onclick="buyItem('Chips', 20)">
+          🛍 Buy
+        </button>
+      </div>
     </div>
+
+    <!-- Cold Drink -->
+    <div class="col-12 col-md-6">
+      <div class="card text-center p-3">
+        <h5>🥤 Cold Drink</h5>
+        <p class="text-muted">Chilled refreshment</p>
+        <h4>₹30</h4>
+        <button class="btn btn-success buy-btn mt-2" onclick="buyItem('Cold Drink', 30)">
+          🛍 Buy
+        </button>
+      </div>
+    </div>
+
   </div>
 
-  <script>
-    async function buy(item, amount) {
-      const customer_id = localStorage.getItem("customer_id");
+</div>
 
-      if (!customer_id) {
-        alert("Login again");
-        window.location.href = "/customer-login";
+<!-- Bottom Nav -->
+<div class="position-fixed bottom-0 start-0 end-0 p-3 bg-dark text-center">
+  <span class="text-white small">💳 Payments are recorded automatically</span>
+</div>
+
+<script>
+  const customerId = localStorage.getItem("customer_id");
+
+  if (!customerId) {
+    window.location.href = "/customer-login";
+  }
+
+  async function buyItem(item, amount) {
+    try {
+      const res = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerId,
+          item,
+          amount
+        })
+      });
+
+      if (!res.ok) {
+        alert("❌ Payment failed");
         return;
       }
 
-      await fetch("/api/payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId: customer_id, item, amount })
-      });
+      alert(`✅ ${item} purchased successfully!`);
 
-      alert("Payment successful");
+    } catch (err) {
+      alert("❌ Server error");
     }
-  </script>
+  }
+
+  function logout() {
+    localStorage.removeItem("customer_id");
+    window.location.href = "/";
+  }
+</script>
+
 </body>
+</html>
