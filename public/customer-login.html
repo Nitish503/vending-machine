@@ -121,10 +121,16 @@
 </div>
 <script>
   let generatedCaptcha = "";
+  let captchaValid = false;
+  let timerInterval;
+  const CAPTCHA_EXPIRY = 30; // seconds
+  let timeLeft = CAPTCHA_EXPIRY;
 
   function generateCaptcha() {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     generatedCaptcha = "";
+    captchaValid = true;
+    timeLeft = CAPTCHA_EXPIRY;
 
     for (let i = 0; i < 4; i++) {
       generatedCaptcha += chars.charAt(
@@ -133,15 +139,33 @@
     }
 
     document.getElementById("captchaCode").innerText = generatedCaptcha;
+    document.getElementById("captchaTimer").innerText = timeLeft;
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      document.getElementById("captchaTimer").innerText = timeLeft;
+
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        captchaValid = false;
+        generateCaptcha(); // auto regenerate
+      }
+    }, 1000);
   }
 
-  // 🔴 THIS WAS MISSING → THIS IS WHY CAPTCHA DID NOT SHOW
   window.onload = generateCaptcha;
 
   document.getElementById("loginForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const captchaInput = document.getElementById("captchaInput").value.trim();
+
+    if (!captchaValid) {
+      alert("⏳ CAPTCHA expired. New CAPTCHA generated.");
+      generateCaptcha();
+      return;
+    }
 
     if (captchaInput !== generatedCaptcha) {
       alert("❌ Invalid CAPTCHA");
@@ -150,7 +174,9 @@
       return;
     }
 
-    // existing login logic
+    // ✅ CAPTCHA passed
+    clearInterval(timerInterval);
+
     const mobile = document.getElementById("mobile").value;
     const password = document.getElementById("password").value;
 
