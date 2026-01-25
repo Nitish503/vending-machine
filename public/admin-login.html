@@ -102,7 +102,66 @@
         ⬅️ Back to Home
       </a>
     </div>
-  </div>
+  </div><script>
+  let generatedCaptcha = "";
+
+  function generateCaptcha() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    generatedCaptcha = "";
+    for (let i = 0; i < 4; i++) {
+      generatedCaptcha += chars.charAt(
+        Math.floor(Math.random() * chars.length)
+      );
+    }
+    document.getElementById("captchaCode").innerText = generatedCaptcha;
+  }
+
+  // Generate captcha when page loads
+  generateCaptcha();
+
+  const form = document.getElementById("loginForm");
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const userCaptcha = document.getElementById("captchaInput").value.trim();
+
+    if (userCaptcha !== generatedCaptcha) {
+      alert("❌ Invalid CAPTCHA. Please try again.");
+      generateCaptcha();
+      document.getElementById("captchaInput").value = "";
+      return;
+    }
+
+    // Continue with existing login logic
+    const mobile = document.getElementById("mobile").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("/api/customer-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile, password })
+    });
+
+    const data = await res.json();
+
+    if (data.resetRequired) {
+      alert("⚠️ Password reset by admin. Please re-register.");
+      window.location.href = "/customer-register";
+      return;
+    }
+
+    if (data.error) {
+      alert("❌ " + data.error);
+      generateCaptcha();
+      return;
+    }
+
+    localStorage.setItem("customer_id", data.customer_id);
+    window.location.href = "/customer";
+  });
+</script>
+
 
 </body>
 </html>
