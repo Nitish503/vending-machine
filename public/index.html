@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Vending Machine</title>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Mobile support -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -36,6 +37,38 @@
         height: 220px;
       }
     }
+    .social-icon {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.social-icon:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.35);
+}
+
+.whatsapp {
+  background: #25D366;
+}
+
+.instagram {
+  background: radial-gradient(circle at 30% 107%,
+    #fdf497 0%, #fdf497 5%, #fd5949 45%,
+    #d6249f 60%, #285AEB 90%);
+}
+
+.facebook {
+  background: #1877F2;
+}
   </style>
 </head>
 
@@ -124,66 +157,46 @@
 </div>
 <!-- ================= ABOUT ADMIN MODAL ================= -->
 <div class="modal fade" id="aboutAdminModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4 shadow-lg">
 
       <!-- HEADER -->
-      <div class="modal-header border-0 bg-primary text-white rounded-top-4">
+      <div class="modal-header border-0">
         <h5 class="modal-title">👨‍💼 About Admin</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <!-- BODY -->
-      <div class="modal-body text-center p-4">
+      <div class="modal-body text-center">
 
-        <!-- ADMIN AVATAR -->
-        <div class="mb-3">
-          <img
-            src="/images/vending2.jpeg"
-            alt="Admin"
-            class="rounded-circle shadow"
-            style="width:110px;height:110px;object-fit:cover;"
-          >
+        <p class="text-muted mb-4">
+          Securely managing the vending machine system
+        </p>
+
+        <!-- INFO CARDS -->
+        <div class="card mb-3 border-0 bg-light">
+          <div class="card-body">🔐 <strong>Role:</strong> System Administrator</div>
         </div>
 
-        <h5 class="fw-bold mb-1">Nitish Kumar Mahto</h5>
-        <p class="text-muted mb-4">System Administrator</p>
-
-        <!-- ROLE CARDS -->
-        <div class="row g-3 mb-4">
-          <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-              <div class="card-body">
-                🔐 <strong>Role</strong><br>
-                System Admin
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-              <div class="card-body">
-                👥 <strong>Manages</strong><br>
-                Customers & Accounts
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-              <div class="card-body">
-                💳 <strong>Controls</strong><br>
-                Payments & Resets
-              </div>
-            </div>
-          </div>
+        <div class="card mb-3 border-0 bg-light">
+          <div class="card-body">👥 <strong>Manages:</strong> Customers & Accounts</div>
         </div>
 
-        <!-- CONTACT SECTION -->
-        <h6 class="fw-bold mb-3">📞 Contact Admin</h6>
+        <div class="card mb-3 border-0 bg-light">
+          <div class="card-body">💳 <strong>Controls:</strong> Payments & Resets</div>
+        </div>
 
-        <div class="card mb-3 border-0 shadow-sm text-start">
-          <div class="card-body">
+        <div class="card mb-3 border-0 bg-light">
+          <div class="card-body">🛡️ <strong>Security:</strong> Login + CAPTCHA Protection</div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- CONTACT DETAILS -->
+        <h6 class="mb-3">📞 Contact Admin</h6>
+
+        <div class="card mb-3 border-0 bg-light">
+          <div class="card-body text-start">
             📱 <strong>Phone:</strong><br>
             <a href="tel:+917320021503" class="text-decoration-none">
               +91 7320021503
@@ -191,8 +204,8 @@
           </div>
         </div>
 
-        <div class="card mb-3 border-0 shadow-sm text-start">
-          <div class="card-body">
+        <div class="card mb-3 border-0 bg-light">
+          <div class="card-body text-start">
             ✉️ <strong>Email:</strong><br>
             <a href="mailto:nitimahto503@gmail.com" class="text-decoration-none">
               nitimahto503@gmail.com
@@ -200,38 +213,53 @@
           </div>
         </div>
 
-        <div class="card mb-4 border-0 shadow-sm text-start">
-          <div class="card-body">
+        <div class="card mb-4 border-0 bg-light">
+          <div class="card-body text-start">
             🕒 <strong>Support Hours:</strong><br>
-            Mon – Sat, 10:00 AM – 6:00 PM
+            Mon – Sat, 10 AM – 6 PM
           </div>
         </div>
 
-        <!-- WHATSAPP BUTTON -->
-        <a
-          href="https://wa.me/917320021503?text=Hello%20Admin%2C%20I%20need%20support"
-          target="_blank"
-          class="btn btn-success w-100 mb-3"
-        >
-          💬 Chat on WhatsApp
-        </a>
+        <!-- SOCIAL ICONS -->
+        <h6 class="mb-3">🌐 Connect with Admin</h6>
+
+        <div class="d-flex justify-content-center gap-3 mb-3">
+
+          <!-- WhatsApp -->
+          <a href="https://wa.me/917320021503?text=Hello%20Admin"
+             target="_blank"
+             class="social-icon whatsapp"
+             title="Chat on WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+
+          <!-- Instagram -->
+          <a href="https://www.instagram.com/your_instagram_username"
+             target="_blank"
+             class="social-icon instagram"
+             title="Instagram">
+            <i class="fab fa-instagram"></i>
+          </a>
+
+          <!-- Facebook -->
+          <a href="https://www.facebook.com/your_facebook_profile"
+             target="_blank"
+             class="social-icon facebook"
+             title="Facebook">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+
+        </div>
 
         <p class="text-muted small">
-          ℹ️ For password reset or account issues, please contact the admin.
+          ℹ️ For password reset or account issues, please contact the admin directly.
         </p>
-
-        <!-- SECURITY INFO -->
-        <div class="card border-0 bg-light mt-3">
-          <div class="card-body">
-            🛡️ <strong>Security:</strong> Login + CAPTCHA Protection
-          </div>
-        </div>
 
       </div>
 
       <!-- FOOTER -->
       <div class="modal-footer border-0">
-        <button class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">
+        <button class="btn btn-secondary w-100" data-bs-dismiss="modal">
           ❌ Close
         </button>
       </div>
