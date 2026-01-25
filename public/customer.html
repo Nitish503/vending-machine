@@ -32,6 +32,7 @@
       position: fixed;
       top: 15px;
       right: 15px;
+      z-index: 1000;
     }
   </style>
 </head>
@@ -42,8 +43,54 @@
 <button class="btn btn-dark logout-btn" onclick="logout()">🚪 Logout</button>
 
 <div class="container py-5">
+
   <h2 class="text-center mb-4">🧃 Vending Machine</h2>
 
+  <!-- ADDRESS BUTTON -->
+  <div class="text-center mb-4">
+    <button class="btn btn-outline-light" onclick="toggleAddress()">
+      🏠 Add / Update Address
+    </button>
+  </div>
+
+  <!-- ADDRESS SECTION -->
+  <div id="addressSection" class="card text-dark mb-4" style="display:none;">
+    <div class="card-body">
+
+      <h5 class="mb-3">📦 Delivery Address</h5>
+
+      <form onsubmit="saveAddress(event)">
+        <div class="mb-2">
+          <input type="text" id="addrName" class="form-control" placeholder="Full Name" required>
+        </div>
+
+        <div class="mb-2">
+          <input type="tel" id="addrPhone" class="form-control" placeholder="Phone Number" required>
+        </div>
+
+        <div class="mb-2">
+          <textarea id="addrAddress" class="form-control" rows="2"
+            placeholder="House / Street / Area" required></textarea>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col">
+            <input type="text" id="addrCity" class="form-control" placeholder="City" required>
+          </div>
+          <div class="col">
+            <input type="text" id="addrPin" class="form-control" placeholder="PIN Code" required>
+          </div>
+        </div>
+
+        <button class="btn btn-success w-100">
+          💾 Save Address
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ITEMS -->
   <div class="row g-4 justify-content-center">
 
     <!-- Chips -->
@@ -76,20 +123,49 @@
 </div>
 
 <script>
-  // customer id saved during login
+  // Ensure customer logged in
   const customerId = localStorage.getItem("customer_id");
-
   if (!customerId) {
     alert("Please login again");
     window.location.href = "/customer-login";
   }
 
+  /* -------- ADDRESS LOGIC -------- */
+  function toggleAddress() {
+    const section = document.getElementById("addressSection");
+    section.style.display = section.style.display === "none" ? "block" : "none";
+
+    const saved = JSON.parse(localStorage.getItem("customerAddress"));
+    if (saved) {
+      addrName.value = saved.name;
+      addrPhone.value = saved.phone;
+      addrAddress.value = saved.address;
+      addrCity.value = saved.city;
+      addrPin.value = saved.pin;
+    }
+  }
+
+  function saveAddress(e) {
+    e.preventDefault();
+
+    const address = {
+      name: addrName.value,
+      phone: addrPhone.value,
+      address: addrAddress.value,
+      city: addrCity.value,
+      pin: addrPin.value
+    };
+
+    localStorage.setItem("customerAddress", JSON.stringify(address));
+    alert("✅ Address saved successfully");
+    document.getElementById("addressSection").style.display = "none";
+  }
+
+  /* -------- PAYMENT -------- */
   function buyItem(item, amount) {
-    fetch("/api/payments", {   // ✅ CORRECT ROUTE (PLURAL)
+    fetch("/api/payments", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         customer_id: customerId,
         item: item,
@@ -100,13 +176,8 @@
       if (!res.ok) throw new Error("Payment failed");
       return res.json();
     })
-    .then(() => {
-      alert("✅ Payment successful!");
-    })
-    .catch(err => {
-      console.error(err);
-      alert("❌ Payment failed");
-    });
+    .then(() => alert("✅ Payment successful!"))
+    .catch(() => alert("❌ Payment failed"));
   }
 
   function logout() {
