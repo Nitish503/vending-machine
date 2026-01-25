@@ -124,71 +124,104 @@
 </div>
 <!-- ================= ABOUT ADMIN MODAL ================= -->
 <div class="modal fade" id="aboutAdminModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content rounded-4 shadow-lg">
 
-      <div class="modal-header border-0">
+      <!-- HEADER -->
+      <div class="modal-header border-0 bg-primary text-white rounded-top-4">
         <h5 class="modal-title">👨‍💼 About Admin</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-      <div class="modal-body text-center">
+      <!-- BODY -->
+      <div class="modal-body text-center p-4">
 
-        <p class="text-muted mb-4">
-          Securely managing the vending machine system
+        <!-- ADMIN AVATAR -->
+        <div class="mb-3">
+          <img
+            src="/images/admin-avatar.png"
+            alt="Admin"
+            class="rounded-circle shadow"
+            style="width:110px;height:110px;object-fit:cover;"
+          >
+        </div>
+
+        <h5 class="fw-bold mb-1">Nitish Kumar Mahto</h5>
+        <p class="text-muted mb-4">System Administrator</p>
+
+        <!-- ROLE CARDS -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="card-body">
+                🔐 <strong>Role</strong><br>
+                System Admin
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="card-body">
+                👥 <strong>Manages</strong><br>
+                Customers & Accounts
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="card-body">
+                💳 <strong>Controls</strong><br>
+                Payments & Resets
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTACT SECTION -->
+        <h6 class="fw-bold mb-3">📞 Contact Admin</h6>
+
+        <div class="card mb-3 border-0 shadow-sm text-start">
+          <div class="card-body">
+            📱 <strong>Phone:</strong><br>
+            <a href="tel:+917320021503" class="text-decoration-none">
+              +91 7320021503
+            </a>
+          </div>
+        </div>
+
+        <div class="card mb-3 border-0 shadow-sm text-start">
+          <div class="card-body">
+            ✉️ <strong>Email:</strong><br>
+            <a href="mailto:nitimahto503@gmail.com" class="text-decoration-none">
+              nitimahto503@gmail.com
+            </a>
+          </div>
+        </div>
+
+        <div class="card mb-4 border-0 shadow-sm text-start">
+          <div class="card-body">
+            🕒 <strong>Support Hours:</strong><br>
+            Mon – Sat, 10:00 AM – 6:00 PM
+          </div>
+        </div>
+
+        <!-- WHATSAPP BUTTON -->
+        <a
+          href="https://wa.me/917320021503?text=Hello%20Admin%2C%20I%20need%20support"
+          target="_blank"
+          class="btn btn-success w-100 mb-3"
+        >
+          💬 Chat on WhatsApp
+        </a>
+
+        <p class="text-muted small">
+          ℹ️ For password reset or account issues, please contact the admin.
         </p>
 
-        <div class="card mb-3 border-0 bg-light">
-          <div class="card-body">
-            🔐 <strong>Role:</strong> System Administrator
-          </div>
-        </div>
-
-        <div class="card mb-3 border-0 bg-light">
-          <div class="card-body">
-            👥 <strong>Manages:</strong> Customers & Accounts
-          </div>
-        </div>
-
-        <div class="card mb-3 border-0 bg-light">
-          <div class="card-body">
-            💳 <strong>Controls:</strong> Payments & Resets
-          </div>
-        </div>
-        <hr class="my-4">
-
-<h6 class="mb-3">📞 Contact Admin</h6>
-
-<div class="card mb-3 border-0 bg-light">
-  <div class="card-body text-start">
-    📱 <strong>Phone:</strong><br>
-    <a href="tel:+917320021503" class="text-decoration-none">
-      +91 7320021503
-    </a>
-  </div>
-</div>
-
-<div class="card mb-3 border-0 bg-light">
-  <div class="card-body text-start">
-    ✉️ <strong>Email:</strong><br>
-    <a href="mailto:admin@vendingmachine.com" class="text-decoration-none">
-      nitimahto503@gmail.com
-    </a>
-  </div>
-</div>
-
-<div class="card border-0 bg-light">
-  <div class="card-body text-start">
-    📍 <strong>Support Hours:</strong><br>
-    Mon – Sat, 10 AM – 6 PM
-  </div>
-</div>
-
-<p class="text-muted small mt-3">
-  ℹ️ For password reset or account issues, please contact the admin directly.
-</p>
-
-        <div class="card border-0 bg-light">
+        <!-- SECURITY INFO -->
+        <div class="card border-0 bg-light mt-3">
           <div class="card-body">
             🛡️ <strong>Security:</strong> Login + CAPTCHA Protection
           </div>
@@ -196,8 +229,9 @@
 
       </div>
 
+      <!-- FOOTER -->
       <div class="modal-footer border-0">
-        <button class="btn btn-secondary w-100" data-bs-dismiss="modal">
+        <button class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">
           ❌ Close
         </button>
       </div>
