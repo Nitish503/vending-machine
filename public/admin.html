@@ -26,6 +26,12 @@
     .card {
       border-radius: 16px;
       box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
     }
 
     .customer-card {
@@ -46,46 +52,23 @@
       background-color: #dc3545;
     }
 
-    /* ===== ANIMATIONS ===== */
+    .fade-slide {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeSlideIn 0.6s ease forwards;
+    }
 
-/* Fade + slide in */
-.fade-slide {
-  opacity: 0;
-  transform: translateY(30px);
-  animation: fadeSlideIn 0.6s ease forwards;
-}
+    @keyframes fadeSlideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-@keyframes fadeSlideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hover lift */
-.card {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
-}
-
-/* Reset button pulse */
-.btn-danger {
-  transition: transform 0.2s ease;
-}
-
-.btn-danger:hover {
-  transform: scale(1.05);
-}
-
-/* Stagger delay helpers */
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
-.delay-4 { animation-delay: 0.4s; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
   </style>
 </head>
 
@@ -121,14 +104,21 @@
     container.innerHTML = '';
 
     customers.forEach(c => {
+      const isReset = c.password === null;
+
       container.innerHTML += `
         <div class="col-12 col-md-6 col-lg-4">
           <div class="card customer-card p-3 fade-slide delay-${c.id % 4}">
             <h5>👤 ${c.name}</h5>
             <p class="mb-1">📱 ${c.mobile}</p>
-            <span class="badge badge-active mb-2">ACTIVE</span>
+
+            <span class="badge ${isReset ? 'badge-reset' : 'badge-active'} mb-2">
+              ${isReset ? 'RESET REQUIRED' : 'ACTIVE'}
+            </span>
+
             <div class="mt-2">
               <button class="btn btn-sm btn-danger"
+                ${isReset ? 'disabled' : ''}
                 onclick="resetPassword(${c.id})">
                 🔁 Reset Password
               </button>
@@ -153,12 +143,17 @@
     }
 
     payments.forEach(p => {
+      const address = p.address
+        ? `<p class="mb-1"><small>📍 ${p.address}</small></p>`
+        : `<p class="mb-1 text-muted"><small>📍 Address not provided</small></p>`;
+
       container.innerHTML += `
         <div class="col-12 col-md-6 col-lg-4">
           <div class="card payment-card p-3 fade-slide delay-${p.id % 4}">
             <h6>👤 ${p.name}</h6>
             <p class="mb-1">🛒 ${p.item}</p>
             <p class="mb-1">💰 ₹${p.amount}</p>
+            ${address}
             <small class="text-muted">
               ⏱ ${new Date(p.created_at).toLocaleString()}
             </small>
@@ -183,7 +178,6 @@
   // INITIAL LOAD
   loadCustomers();
   loadPayments();
-  document.body.classList.add('loaded');
 </script>
 
 </body>

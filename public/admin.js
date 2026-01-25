@@ -25,7 +25,14 @@ fetch("/api/payments")
   .then(res => res.json())
   .then(payments => {
     const list = document.getElementById("payments");
-    list.innerHTML = "";
+    list.innerHTML =tr.innerHTML = `
+  <td>${p.id}</td>
+  <td>${p.name}</td>
+  <td>${p.item}</td>
+  <td>₹${p.amount}</td>
+  <td>${p.address || "Not provided"}</td>
+  <td>${new Date(p.created_at).toLocaleString()}</td>
+`;
 
     payments.forEach(p => {
       const li = document.createElement("li");

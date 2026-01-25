@@ -184,11 +184,12 @@ app.post("/api/customer-login", async (req, res) => {
 // ==========================
 app.post("/api/payments", async (req, res) => {
   try {
-    const { customer_id, item, amount } = req.body;
+    const { customer_id, item, amount, address } = req.body;
 
     await pool.query(
-      "INSERT INTO payments (customer_id, item, amount) VALUES ($1,$2,$3)",
-      [customer_id, item, amount]
+      `INSERT INTO payments (customer_id, item, amount, address)
+       VALUES ($1, $2, $3, $4)`,
+      [customer_id, item, amount, address]
     );
 
     res.json({ success: true });
@@ -210,7 +211,7 @@ app.get("/api/customers", async (req, res) => {
 
 app.get("/api/payments", async (req, res) => {
   const result = await pool.query(
-    `SELECT p.id, c.name, p.item, p.amount, p.created_at
+    `SELECT p.id, c.name, p.item, p.amount, p.address, p.created_at
      FROM payments p
      JOIN customers c ON p.customer_id = c.id
      ORDER BY p.id DESC`

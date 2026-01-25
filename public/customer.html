@@ -163,22 +163,32 @@
 
   /* -------- PAYMENT -------- */
   function buyItem(item, amount) {
-    fetch("/api/payments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customer_id: customerId,
-        item: item,
-        amount: amount
-      })
-    })
-    .then(res => {
-      if (!res.ok) throw new Error("Payment failed");
-      return res.json();
-    })
-    .then(() => alert("✅ Payment successful!"))
-    .catch(() => alert("❌ Payment failed"));
+  const customerId = localStorage.getItem("customer_id");
+  const address = localStorage.getItem("customerAddress");
+
+  if (!address) {
+    alert("Please add address before buying");
+    return;
   }
+
+  fetch("/api/payments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      customer_id: customerId,
+      item: item,
+      amount: amount,
+      address: address
+    })
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("✅ Payment successful!");
+  })
+  .catch(() => {
+    alert("❌ Payment failed");
+  });
+}
 
   function logout() {
     localStorage.removeItem("customer_id");
