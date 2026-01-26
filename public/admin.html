@@ -93,6 +93,10 @@
   <div id="payments" class="row g-3"></div>
 
 </div>
+// SECTION FOR MESSAGE IN ADMIN PANEL
+<hr class="my-5">
+<h3 class="mb-3">📨 Customer Messages</h3>
+<div id="messages" class="row g-3"></div>
 
 <script>
   // ---------------- LOAD CUSTOMERS ----------------
@@ -162,6 +166,34 @@
       `;
     });
   }
+  // message admin.html script section
+  async function loadMessages() {
+  const res = await fetch("/api/messages");
+  const messages = await res.json();
+
+  const container = document.getElementById("messages");
+  container.innerHTML = "";
+
+  if (messages.length === 0) {
+    container.innerHTML = "<p class='text-light'>No messages yet</p>";
+    return;
+  }
+
+  messages.forEach(m => {
+    container.innerHTML += `
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="card p-3">
+          <h6>👤 ${m.name}</h6>
+          <p class="mb-1">📱 ${m.phone}</p>
+          <p class="mb-2">💬 ${m.message}</p>
+          <small class="text-muted">
+            ⏱ ${new Date(m.created_at).toLocaleString()}
+          </small>
+        </div>
+      </div>
+    `;
+  });
+}
 
   // ---------------- RESET PASSWORD ----------------
   async function resetPassword(id) {
@@ -178,6 +210,7 @@
   // INITIAL LOAD
   loadCustomers();
   loadPayments();
+  loadMessages();
 </script>
 
 </body>

@@ -179,6 +179,27 @@ app.post("/api/customer-login", async (req, res) => {
   }
 });
 
+// messages post
+app.post("/api/messages", async (req, res) => {
+  try {
+    const { name, phone, message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Message required" });
+    }
+
+    await pool.query(
+      "INSERT INTO messages (name, phone, message) VALUES ($1, $2, $3)",
+      [name || "Anonymous", phone || "-", message]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to send message" });
+  }
+});
+
 // ==========================
 // PAYMENTS
 // ==========================
@@ -217,6 +238,19 @@ app.get("/api/payments", async (req, res) => {
      ORDER BY p.id DESC`
   );
   res.json(result.rows);
+});
+
+// admin messages get routes
+app.get("/api/messages", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM messages ORDER BY id DESC"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch messages" });
+  }
 });
 
 // ==========================
