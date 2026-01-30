@@ -82,6 +82,10 @@
 
 <div class="container py-4">
 
+  <!-- VISITOR STATS -->
+<h3 class="mb-3">📊 Website Visits</h3>
+<div class="row g-3 mb-4" id="visitStats"></div>
+
   <!-- CUSTOMERS -->
   <h3 class="mb-3">👥 Customers</h3>
   <div id="customers" class="row g-3"></div>
@@ -195,6 +199,28 @@
   });
 }
 
+// ---------------- LOAD VISITS ----------------
+async function loadVisits() {
+  const res = await fetch("/api/visits");
+  const data = await res.json();
+
+  document.getElementById("visitStats").innerHTML = `
+    <div class="col-md-6">
+      <div class="card p-3 text-dark">
+        <h5>👀 Total Visits</h5>
+        <h2>${data.total}</h2>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card p-3 text-dark">
+        <h5>📅 Today</h5>
+        <h2>${data.today}</h2>
+      </div>
+    </div>
+  `;
+}
+
   // ---------------- RESET PASSWORD ----------------
   async function resetPassword(id) {
     if (!confirm('Reset password for this customer?')) return;
@@ -211,6 +237,7 @@
   loadCustomers();
   loadPayments();
   loadMessages();
+  loadVisits();
 </script>
 
 </body>

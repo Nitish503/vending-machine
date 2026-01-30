@@ -22,6 +22,36 @@ const pool = new Pool({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+// ==========================
+// VISITOR TRACKING (SAFE)
+// ==========================
+app.use(async (req, res, next) => {
+  try {
+    // Ignore API calls & assets
+    if (
+      req.path.startsWith("/api") ||
+      req.path.includes(".css") ||
+      req.path.includes(".js") ||
+      req.path.includes(".png") ||
+      req.path.includes(".jpg") ||
+      req.path.includes(".jpeg")
+    ) {
+      return next();
+    }
+
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.socket.remoteAddress;
+
+    await pool.query(
+      "INSERT INTO visits (ip) VALUES ($1)",
+      [ip]
+    );
+  } catch (err) {
+    console.error("Visit log error:", err);
+  }
+  next();
+});
 
 // ==========================
 // DATABASE INITIALIZATION
@@ -254,6 +284,29 @@ app.get("/api/messages", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch messages" });
+  }
+});
+
+// ==========================
+// ADMIN : VISITOR STATS
+// ==========================
+app.get("/api/visits", async (req, res) => {
+  try {
+    const total = await pool.query(
+      "SELECT COUNT(*) FROM visits"
+    );
+
+    const today = await pool.query(
+      "SELECT COUNT(*) FROM visits WHERE DATE(visited_at) = CURRENT_DATE"
+    );
+
+    res.json({
+      total: total.rows[0].count,
+      today: today.rows[0].count
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load visits" });
   }
 });
 
