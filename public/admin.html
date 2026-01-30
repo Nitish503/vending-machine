@@ -75,25 +75,24 @@
   </div>
 
   <!-- PAYMENTS -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="section-title">Payments</h5>
-      <div class="table-responsive">
-        <table class="table table-bordered table-sm">
-          <thead class="table-light">
-            <tr>
-              <th>Customer</th>
-              <th>Item</th>
-              <th>Amount</th>
-              <th>Address</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody id="payments"></tbody>
-        </table>
-      </div>
-    </div>
+  <h3 class="mb-3">💳 Payments</h3>
+
+<div class="row g-2 mb-3">
+  <div class="col-md-4">
+    <input type="date" id="fromDate" class="form-control">
   </div>
+
+  <div class="col-md-4">
+    <input type="date" id="toDate" class="form-control">
+  </div>
+
+  <div class="col-md-4">
+    <button class="btn btn-primary w-100" onclick="filterPayments()">
+      🔍 Filter
+    </button>
+  </div>
+</div>
+
 
   <!-- MESSAGES -->
   <div class="card mb-4">
@@ -118,6 +117,7 @@
 </div>
 
 <script>
+  let allPayments = [];
   let allCustomers = [];
   // VISITS
   async function loadVisits() {
@@ -173,24 +173,56 @@ function filterCustomers() {
 
   // PAYMENTS
   async function loadPayments() {
-    const res = await fetch("/api/payments");
-    const payments = await res.json();
+  const res = await fetch("/api/payments");
+  allPayments = await res.json();
+  renderPayments(allPayments);
+}
+function renderPayments(payments) {
+  const container = document.getElementById("payments");
+  container.innerHTML = "";
 
-    const tbody = document.getElementById("payments");
-    tbody.innerHTML = "";
-
-    payments.forEach(p => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${p.name}</td>
-          <td>${p.item}</td>
-          <td>₹${p.amount}</td>
-          <td>${p.address || "-"}</td>
-          <td>${new Date(p.created_at).toLocaleString()}</td>
-        </tr>
-      `;
-    });
+  if (payments.length === 0) {
+    container.innerHTML = "<p class='text-light'>No payments found</p>";
+    return;
   }
+
+  payments.forEach(p => {
+    container.innerHTML += `
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="card p-3 text-dark">
+          <h6>👤 ${p.name}</h6>
+          <p class="mb-1">🛒 ${p.item}</p>
+          <p class="mb-1">💰 ₹${p.amount}</p>
+          <p class="mb-1">📍 ${p.address || "N/A"}</p>
+          <small class="text-muted">
+            ⏱ ${new Date(p.created_at).toLocaleString()}
+          </small>
+        </div>
+      </div>
+    `;
+  });
+}
+function filterPayments() {
+  const from = document.getElementById("fromDate").value;
+  const to = document.getElementById("toDate").value;
+
+  if (!from || !to) {
+    alert("Please select both dates");
+    return;
+  }
+
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
+  toDate.setHours(23, 59, 59, 999); // include full day
+
+  const filtered = allPayments.filter(p => {
+    const paymentDate = new Date(p.created_at);
+    return paymentDate >= fromDate && paymentDate <= toDate;
+  });
+
+  renderPayments(filtered);
+}
+
 
   // MESSAGES
   async function loadMessages() {
