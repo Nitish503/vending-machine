@@ -185,12 +185,6 @@
 </div>
 
 <script>
-  // Ensure customer logged in
-  const customerId = localStorage.getItem("customer_id");
-  if (!customerId) {
-    alert("Please login again");
-    window.location.href = "/customer-login";
-  }
 
   /* -------- ADDRESS LOGIC -------- */
   function toggleAddress() {
@@ -225,7 +219,14 @@
 
   /* -------- PAYMENT -------- */
   function buyItem(item, amount) {
+  // Check login
   const customerId = localStorage.getItem("customer_id");
+
+  if (!customerId) {
+    alert("Please login first to buy");
+    window.location.href = "/customer-login";
+    return;
+  }
   const address = localStorage.getItem("customerAddress");
 
   if (!address) {

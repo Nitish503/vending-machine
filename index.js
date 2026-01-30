@@ -59,6 +59,10 @@ initDB();
 // ==========================
 // PAGES
 // ==========================
+app.get("/products", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "customer.html"));
+});
+
 app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "index.html"))
 );
