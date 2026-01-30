@@ -84,7 +84,9 @@
 
   <!-- VISITOR STATS -->
 <h3 class="mb-3">📊 Website Visits</h3>
-<div class="row g-3 mb-4" id="visitStats"></div>
+<div class="card p-3 mb-3">
+  👥 Unique Visitors: <strong id="visitorCount">0</strong>
+</div>
 
   <!-- CUSTOMERS -->
   <h3 class="mb-3">👥 Customers</h3>
@@ -199,27 +201,40 @@
   });
 }
 
-// ---------------- LOAD VISITS ----------------
-async function loadVisits() {
-  const res = await fetch("/api/visits");
-  const data = await res.json();
+// ---------------- LOAD VISITS ----------------//
+  async function loadVisits() {
+    try {
+      const res = await fetch("/api/visits");
 
-  document.getElementById("visitStats").innerHTML = `
-    <div class="col-md-6">
-      <div class="card p-3 text-dark">
-        <h5>👀 Total Visits</h5>
-        <h2>${data.total}</h2>
-      </div>
-    </div>
+      if (!res.ok) {
+        throw new Error("Failed to load visits");
+      }
 
-    <div class="col-md-6">
-      <div class="card p-3 text-dark">
-        <h5>📅 Today</h5>
-        <h2>${data.today}</h2>
-      </div>
-    </div>
-  `;
-}
+      const data = await res.json();
+
+      document.getElementById("visitStats").innerHTML = `
+        <div class="col-md-6">
+          <div class="card p-3 text-dark shadow">
+            <h5>👀 Total Unique Visitors</h5>
+            <h2>${data.total}</h2>
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      console.error(err);
+      document.getElementById("visitStats").innerHTML = `
+        <div class="col-md-6">
+          <div class="card p-3 text-danger">
+            ❌ Failed to load visit stats
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // ✅ IMPORTANT: CALL THE FUNCTION
+  document.addEventListener("DOMContentLoaded", loadVisits);
+
 
   // ---------------- RESET PASSWORD ----------------
   async function resetPassword(id) {

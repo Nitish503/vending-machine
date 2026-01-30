@@ -23,32 +23,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 // ==========================
-// VISITOR TRACKING (SAFE)
+// UNIQUE VISITOR TRACKING
 // ==========================
 app.use(async (req, res, next) => {
   try {
-    // Ignore API calls & assets
-    if (
-      req.path.startsWith("/api") ||
-      req.path.includes(".css") ||
-      req.path.includes(".js") ||
-      req.path.includes(".png") ||
-      req.path.includes(".jpg") ||
-      req.path.includes(".jpeg")
-    ) {
-      return next();
-    }
-
     const ip =
       req.headers["x-forwarded-for"]?.split(",")[0] ||
       req.socket.remoteAddress;
 
-    await pool.query(
-      "INSERT INTO visits (ip) VALUES ($1)",
-      [ip]
-    );
+    if (ip) {
+      await pool.query(
+        "INSERT INTO visits (ip) VALUES ($1) ON CONFLICT (ip) DO NOTHING",
+        [ip]
+      );
+    }
   } catch (err) {
-    console.error("Visit log error:", err);
+    console.error("Visit tracking error:", err.message);
   }
   next();
 });
@@ -288,25 +278,16 @@ app.get("/api/messages", async (req, res) => {
 });
 
 // ==========================
-// ADMIN : VISITOR STATS
+// UNIQUE VISITOR COUNT
 // ==========================
-app.get("/api/visits", async (req, res) => {
+app.get("/api/visitors/count", async (req, res) => {
   try {
-    const total = await pool.query(
-      "SELECT COUNT(*) FROM visits"
+    const result = await pool.query(
+      "SELECT COUNT(*) AS total FROM visits"
     );
-
-    const today = await pool.query(
-      "SELECT COUNT(*) FROM visits WHERE DATE(visited_at) = CURRENT_DATE"
-    );
-
-    res.json({
-      total: total.rows[0].count,
-      today: today.rows[0].count
-    });
+    res.json({ total: result.rows[0].total });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to load visits" });
+    res.status(500).json({ error: "Failed to fetch visitor count" });
   }
 });
 
