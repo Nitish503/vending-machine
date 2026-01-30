@@ -50,6 +50,14 @@
   <div class="card mb-4">
     <div class="card-body">
       <h5 class="section-title">Customers</h5>
+
+<input
+  type="text"
+  id="customerSearch"
+  class="form-control mb-3"
+  placeholder="Search by name or mobile..."
+  oninput="filterCustomers()"
+/>
       <div class="table-responsive">
         <table class="table table-bordered table-sm align-middle">
           <thead class="table-light">
@@ -110,6 +118,7 @@
 </div>
 
 <script>
+  let allCustomers = [];
   // VISITS
   async function loadVisits() {
     const res = await fetch("/api/visits");
@@ -119,33 +128,48 @@
 
   // CUSTOMERS
   async function loadCustomers() {
-    const res = await fetch("/api/customers");
-    const customers = await res.json();
+  const res = await fetch("/api/customers");
+  allCustomers = await res.json();
+  renderCustomers(allCustomers);
+}
+function renderCustomers(customers) {
+  const tbody = document.getElementById("customers");
+  tbody.innerHTML = "";
 
-    const tbody = document.getElementById("customers");
-    tbody.innerHTML = "";
+  customers.forEach(c => {
+    const status = c.password === null
+      ? "<span class='badge bg-danger'>Reset Required</span>"
+      : "<span class='badge bg-success'>Active</span>";
 
-    customers.forEach(c => {
-      const status = c.password === null
-        ? "<span class='badge bg-danger'>Reset Required</span>"
-        : "<span class='badge bg-success'>Active</span>";
+    tbody.innerHTML += `
+      <tr>
+        <td>${c.name}</td>
+        <td>${c.mobile}</td>
+        <td>${status}</td>
+        <td>
+          <button class="btn btn-sm btn-warning"
+            ${c.password === null ? "disabled" : ""}
+            onclick="resetPassword(${c.id})">
+            Reset
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+function filterCustomers() {
+  const query = document
+    .getElementById("customerSearch")
+    .value
+    .toLowerCase();
 
-      tbody.innerHTML += `
-        <tr>
-          <td>${c.name}</td>
-          <td>${c.mobile}</td>
-          <td>${status}</td>
-          <td>
-            <button class="btn btn-sm btn-warning"
-              ${c.password === null ? "disabled" : ""}
-              onclick="resetPassword(${c.id})">
-              Reset
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-  }
+  const filtered = allCustomers.filter(c =>
+    c.name.toLowerCase().includes(query) ||
+    c.mobile.includes(query)
+  );
+
+  renderCustomers(filtered);
+}
 
   // PAYMENTS
   async function loadPayments() {
