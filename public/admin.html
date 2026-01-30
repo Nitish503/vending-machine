@@ -13,62 +13,18 @@
 
   <style>
     body {
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      min-height: 100vh;
-      color: #fff;
+      background: #f4f6f9;
     }
-
     .navbar {
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(10px);
+      background: #0d6efd;
     }
-
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
     .card {
-      border-radius: 16px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.25);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      border-radius: 8px;
     }
-
-    .card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
-    }
-
-    .customer-card {
-      background: #ffffff;
-      color: #000;
-    }
-
-    .payment-card {
-      background: #f8f9fa;
-      color: #000;
-    }
-
-    .badge-active {
-      background-color: #28a745;
-    }
-
-    .badge-reset {
-      background-color: #dc3545;
-    }
-
-    .fade-slide {
-      opacity: 0;
-      transform: translateY(30px);
-      animation: fadeSlideIn 0.6s ease forwards;
-    }
-
-    @keyframes fadeSlideIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
-    .delay-3 { animation-delay: 0.3s; }
-    .delay-4 { animation-delay: 0.4s; }
   </style>
 </head>
 
@@ -76,183 +32,174 @@
 
 <!-- NAVBAR -->
 <nav class="navbar navbar-dark px-3">
-  <span class="navbar-brand fw-bold">🛠️ Admin Dashboard</span>
-  <a href="/" class="btn btn-outline-light btn-sm">🏠 Home</a>
+  <span class="navbar-brand fw-bold">Admin Dashboard</span>
+  <a href="/" class="btn btn-light btn-sm">Home</a>
 </nav>
 
 <div class="container py-4">
 
-  <!-- VISITOR STATS -->
-<h3 class="mb-3">📊 Website Visits</h3>
-<div class="card p-3 mb-3">
-  👥 Unique Visitors: <strong id="visitorCount">0</strong>
-</div>
+  <!-- VISITS -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="section-title">Website Visitors</h5>
+      <p>Total Unique Visitors: <strong id="visitorCount">Loading...</strong></p>
+    </div>
+  </div>
 
   <!-- CUSTOMERS -->
-  <h3 class="mb-3">👥 Customers</h3>
-  <div id="customers" class="row g-3"></div>
-
-  <hr class="my-5">
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="section-title">Customers</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Name</th>
+              <th>Mobile</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="customers"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <!-- PAYMENTS -->
-  <h3 class="mb-3">💳 Payments</h3>
-  <div id="payments" class="row g-3"></div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="section-title">Payments</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Customer</th>
+              <th>Item</th>
+              <th>Amount</th>
+              <th>Address</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="payments"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="section-title">Customer Messages</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Message</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="messages"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
 </div>
-// SECTION FOR MESSAGE IN ADMIN PANEL
-<hr class="my-5">
-<h3 class="mb-3">📨 Customer Messages</h3>
-<div id="messages" class="row g-3"></div>
 
 <script>
-  // ---------------- LOAD CUSTOMERS ----------------
+  // VISITS
+  async function loadVisits() {
+    const res = await fetch("/api/visits");
+    const data = await res.json();
+    document.getElementById("visitorCount").innerText = data.total;
+  }
+
+  // CUSTOMERS
   async function loadCustomers() {
-    const res = await fetch('/api/customers');
+    const res = await fetch("/api/customers");
     const customers = await res.json();
 
-    const container = document.getElementById('customers');
-    container.innerHTML = '';
+    const tbody = document.getElementById("customers");
+    tbody.innerHTML = "";
 
     customers.forEach(c => {
-      const isReset = c.password === null;
+      const status = c.password === null
+        ? "<span class='badge bg-danger'>Reset Required</span>"
+        : "<span class='badge bg-success'>Active</span>";
 
-      container.innerHTML += `
-        <div class="col-12 col-md-6 col-lg-4">
-          <div class="card customer-card p-3 fade-slide delay-${c.id % 4}">
-            <h5>👤 ${c.name}</h5>
-            <p class="mb-1">📱 ${c.mobile}</p>
-
-            <span class="badge ${isReset ? 'badge-reset' : 'badge-active'} mb-2">
-              ${isReset ? 'RESET REQUIRED' : 'ACTIVE'}
-            </span>
-
-            <div class="mt-2">
-              <button class="btn btn-sm btn-danger"
-                ${isReset ? 'disabled' : ''}
-                onclick="resetPassword(${c.id})">
-                🔁 Reset Password
-              </button>
-            </div>
-          </div>
-        </div>
+      tbody.innerHTML += `
+        <tr>
+          <td>${c.name}</td>
+          <td>${c.mobile}</td>
+          <td>${status}</td>
+          <td>
+            <button class="btn btn-sm btn-warning"
+              ${c.password === null ? "disabled" : ""}
+              onclick="resetPassword(${c.id})">
+              Reset
+            </button>
+          </td>
+        </tr>
       `;
     });
   }
 
-  // ---------------- LOAD PAYMENTS ----------------
+  // PAYMENTS
   async function loadPayments() {
-    const res = await fetch('/api/payments');
+    const res = await fetch("/api/payments");
     const payments = await res.json();
 
-    const container = document.getElementById('payments');
-    container.innerHTML = '';
-
-    if (payments.length === 0) {
-      container.innerHTML = '<p class="text-light">No payments yet</p>';
-      return;
-    }
+    const tbody = document.getElementById("payments");
+    tbody.innerHTML = "";
 
     payments.forEach(p => {
-      const address = p.address
-        ? `<p class="mb-1"><small>📍 ${p.address}</small></p>`
-        : `<p class="mb-1 text-muted"><small>📍 Address not provided</small></p>`;
-
-      container.innerHTML += `
-        <div class="col-12 col-md-6 col-lg-4">
-          <div class="card payment-card p-3 fade-slide delay-${p.id % 4}">
-            <h6>👤 ${p.name}</h6>
-            <p class="mb-1">🛒 ${p.item}</p>
-            <p class="mb-1">💰 ₹${p.amount}</p>
-            ${address}
-            <small class="text-muted">
-              ⏱ ${new Date(p.created_at).toLocaleString()}
-            </small>
-          </div>
-        </div>
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.name}</td>
+          <td>${p.item}</td>
+          <td>₹${p.amount}</td>
+          <td>${p.address || "-"}</td>
+          <td>${new Date(p.created_at).toLocaleString()}</td>
+        </tr>
       `;
     });
   }
-  // message admin.html script section
+
+  // MESSAGES
   async function loadMessages() {
-  const res = await fetch("/api/messages");
-  const messages = await res.json();
+    const res = await fetch("/api/messages");
+    const messages = await res.json();
 
-  const container = document.getElementById("messages");
-  container.innerHTML = "";
+    const tbody = document.getElementById("messages");
+    tbody.innerHTML = "";
 
-  if (messages.length === 0) {
-    container.innerHTML = "<p class='text-light'>No messages yet</p>";
-    return;
-  }
-
-  messages.forEach(m => {
-    container.innerHTML += `
-      <div class="col-12 col-md-6 col-lg-4">
-        <div class="card p-3">
-          <h6>👤 ${m.name}</h6>
-          <p class="mb-1">📱 ${m.phone}</p>
-          <p class="mb-2">💬 ${m.message}</p>
-          <small class="text-muted">
-            ⏱ ${new Date(m.created_at).toLocaleString()}
-          </small>
-        </div>
-      </div>
-    `;
-  });
-}
-
-// ---------------- LOAD VISITS ----------------//
-  async function loadVisits() {
-    try {
-      const res = await fetch("/api/visits");
-
-      if (!res.ok) {
-        throw new Error("Failed to load visits");
-      }
-
-      const data = await res.json();
-
-      document.getElementById("visitStats").innerHTML = `
-        <div class="col-md-6">
-          <div class="card p-3 text-dark shadow">
-            <h5>👀 Total Unique Visitors</h5>
-            <h2>${data.total}</h2>
-          </div>
-        </div>
+    messages.forEach(m => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${m.name}</td>
+          <td>${m.phone}</td>
+          <td>${m.message}</td>
+          <td>${new Date(m.created_at).toLocaleString()}</td>
+        </tr>
       `;
-    } catch (err) {
-      console.error(err);
-      document.getElementById("visitStats").innerHTML = `
-        <div class="col-md-6">
-          <div class="card p-3 text-danger">
-            ❌ Failed to load visit stats
-          </div>
-        </div>
-      `;
-    }
-  }
-
-  // ✅ IMPORTANT: CALL THE FUNCTION
-  document.addEventListener("DOMContentLoaded", loadVisits);
-
-
-  // ---------------- RESET PASSWORD ----------------
-  async function resetPassword(id) {
-    if (!confirm('Reset password for this customer?')) return;
-
-    await fetch(`/api/admin/reset-password/${id}`, {
-      method: 'POST'
     });
+  }
 
-    alert('Password reset successfully');
+  // RESET PASSWORD
+  async function resetPassword(id) {
+    if (!confirm("Reset password for this customer?")) return;
+    await fetch(`/api/admin/reset-password/${id}`, { method: "POST" });
     loadCustomers();
   }
 
-  // INITIAL LOAD
+  // LOAD ALL
+  loadVisits();
   loadCustomers();
   loadPayments();
   loadMessages();
-  loadVisits();
 </script>
 
 </body>
