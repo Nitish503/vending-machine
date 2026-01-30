@@ -68,39 +68,36 @@
       <label class="form-label">🔑 Password</label>
       <input type="password" class="form-control" id="password" required>
     </div>
+  <!-- CAPTCHA -->
+<div class="mb-3">
+  <label class="form-label">🔐 CAPTCHA</label>
 
-    <!-- CAPTCHA -->
-    <div class="mb-3">
-      <label class="form-label">🔐 CAPTCHA</label>
+  <div class="d-flex align-items-center gap-2">
+    <input
+      type="text"
+      id="captchaInput"
+      class="form-control"
+      placeholder="Enter code"
+      required
+    />
 
-      <div class="d-flex align-items-center gap-2">
-        <input
-          type="text"
-          id="captchaInput"
-          class="form-control"
-          placeholder="Enter code"
-          required
-        />
+    <span
+      id="captchaCode"
+      class="px-3 py-2 fw-bold rounded"
+      style="background:#f1f3f5; letter-spacing:4px;"
+    >
+      ----
+    </span>
 
-        <span
-          id="captchaCode"
-          class="px-3 py-2 fw-bold rounded"
-          style="background:#f1f3f5; letter-spacing:4px;"
-        >
-          ----
-        </span>
-
-        <button
-          type="button"
-          class="btn btn-outline-secondary btn-sm"
-          onclick="generateCaptcha()"
-        >
-          🔄
-        </button>
-      </div>
-
-      <small class="text-muted">⏳ Expires in <span id="captchaTimer">30</span>s</small>
-    </div>
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm"
+      onclick="generateCaptcha()"
+    >
+      🔄
+    </button>
+  </div>
+</div>
 
     <div class="d-grid mb-3">
       <button class="btn btn-primary" type="submit">
@@ -115,24 +112,24 @@
       🆕 <a class="link" href="/customer-register">Create new account</a>
     </p>
     <p>
-      🔒 Forgot password?
-      <span class="text-danger">Contact Admin via About Admin</span>
+      🔒 Forgot password? <span class="text-danger">Contact Admin in About admin page</span>
     </p>
   </div>
 
   <div id="msg" class="text-center mt-3 fw-semibold"></div>
 
 </div>
-
 <script>
   let generatedCaptcha = "";
+  let captchaValid = false;
   let timerInterval;
-  const CAPTCHA_EXPIRY = 30;
+  const CAPTCHA_EXPIRY = 30; // seconds
   let timeLeft = CAPTCHA_EXPIRY;
 
   function generateCaptcha() {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     generatedCaptcha = "";
+    captchaValid = true;
     timeLeft = CAPTCHA_EXPIRY;
 
     for (let i = 0; i < 4; i++) {
@@ -151,7 +148,8 @@
 
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        generateCaptcha();
+        captchaValid = false;
+        generateCaptcha(); // auto regenerate
       }
     }, 1000);
   }
@@ -162,6 +160,13 @@
     e.preventDefault();
 
     const captchaInput = document.getElementById("captchaInput").value.trim();
+
+    if (!captchaValid) {
+      alert("⏳ CAPTCHA expired. New CAPTCHA generated.");
+      generateCaptcha();
+      return;
+    }
+
     if (captchaInput !== generatedCaptcha) {
       alert("❌ Invalid CAPTCHA");
       generateCaptcha();
@@ -169,13 +174,15 @@
       return;
     }
 
+    // ✅ CAPTCHA passed
+    clearInterval(timerInterval);
+
     const mobile = document.getElementById("mobile").value;
     const password = document.getElementById("password").value;
 
     const res = await fetch("/api/customer-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔥 REQUIRED FOR SESSION
       body: JSON.stringify({ mobile, password })
     });
 
@@ -193,7 +200,7 @@
       return;
     }
 
-    // ✅ SUCCESS → SESSION CREATED
+    localStorage.setItem("customer_id", data.customer_id);
     window.location.href = "/customer";
   });
 </script>
