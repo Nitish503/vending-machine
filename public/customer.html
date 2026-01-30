@@ -6,7 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
 
   <style>
     body {
@@ -14,14 +17,17 @@
       min-height: 100vh;
       color: #fff;
     }
+
     .card {
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
+
     .price {
       font-size: 1.5rem;
       font-weight: bold;
     }
+
     .logout-btn {
       position: fixed;
       top: 15px;
@@ -40,111 +46,214 @@
 
   <h2 class="text-center mb-4">🧃 Vending Machine</h2>
 
+  <!-- ADDRESS BUTTON -->
+  <div class="text-center mb-4">
+    <button class="btn btn-outline-light" onclick="toggleAddress()">
+      🏠 Add / Update Address
+    </button>
+  </div>
+
   <!-- ADDRESS SECTION -->
-  <div class="card text-dark mb-4">
+  <div id="addressSection" class="card text-dark mb-4" style="display:none;">
     <div class="card-body">
+
       <h5 class="mb-3">📦 Delivery Address</h5>
 
-      <div class="mb-2">
-        <input type="text" id="addrName" class="form-control" placeholder="Full Name" required>
-      </div>
-
-      <div class="mb-2">
-        <input type="tel" id="addrPhone" class="form-control" placeholder="Phone Number" required>
-      </div>
-
-      <div class="mb-2">
-        <textarea id="addrAddress" class="form-control" rows="2"
-          placeholder="House / Street / Area" required></textarea>
-      </div>
-
-      <div class="row g-2">
-        <div class="col">
-          <input type="text" id="addrCity" class="form-control" placeholder="City" required>
+      <form onsubmit="saveAddress(event)">
+        <div class="mb-2">
+          <input type="text" id="addrName" class="form-control" placeholder="Full Name" required>
         </div>
-        <div class="col">
-          <input type="text" id="addrPin" class="form-control" placeholder="PIN Code" required>
+
+        <div class="mb-2">
+          <input type="tel" id="addrPhone" class="form-control" placeholder="Phone Number" required>
         </div>
-      </div>
+
+        <div class="mb-2">
+          <textarea id="addrAddress" class="form-control" rows="2"
+            placeholder="House / Street / Area" required></textarea>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col">
+            <input type="text" id="addrCity" class="form-control" placeholder="City" required>
+          </div>
+          <div class="col">
+            <input type="text" id="addrPin" class="form-control" placeholder="PIN Code" required>
+          </div>
+        </div>
+
+        <button class="btn btn-success w-100">
+          💾 Save Address
+        </button>
+      </form>
+
     </div>
   </div>
 
   <!-- ITEMS -->
   <div class="row g-4 justify-content-center">
 
-    <!-- ITEM CARD TEMPLATE -->
-    <script>
-      function itemCard(name, emoji, desc, btn, price=1) {
-        return `
-          <div class="col-md-5">
-            <div class="card text-dark p-4">
-              <h5>${emoji} ${name}</h5>
-              <p class="text-muted">${desc}</p>
-              <div class="price">₹${price}</div>
-              <button class="btn ${btn} mt-3"
-                onclick="buyItem('${name}', ${price})">
-                Buy
-              </button>
-            </div>
-          </div>
-        `;
-      }
-    </script>
+    <!-- Chips -->
+    <div class="col-md-5">
+      <div class="card text-dark p-4">
+        <h5>🍟 Chips</h5>
+        <p class="text-muted">Crunchy snack</p>
+        <div class="price">₹1</div>
+        <button class="btn btn-primary mt-3"
+          onclick="buyItem('Chips', 1)">
+          Buy
+        </button>
+      </div>
+    </div>
+    <!-- Chocolate -->
+<div class="col-md-5">
+  <div class="card text-dark p-4">
+    <h5>🍫 Chocolate</h5>
+    <p class="text-muted">Sweet & delicious treat</p>
+    <div class="price">₹1</div>
+    <button class="btn btn-warning mt-3"
+      onclick="buyItem('Chocolate', 1)">
+      Buy
+    </button>
+  </div>
+</div>
 
-    <div id="items"></div>
+<!-- Kurkure -->
+<div class="col-md-5">
+  <div class="card text-dark p-4">
+    <h5>🍿 Kurkure</h5>
+    <p class="text-muted">Masaledar crunchy snack</p>
+    <div class="price">₹1</div>
+    <button class="btn btn-danger mt-3"
+      onclick="buyItem('Kurkure', 1)">
+      Buy
+    </button>
+  </div>
+</div>
+<!-- Laptop -->
+<div class="col-md-5">
+  <div class="card text-dark p-4">
+    <h5>💻 Laptop</h5>
+    <p class="text-muted">High-performance portable computer</p>
+    <div class="price">₹1</div>
+    <button class="btn btn-secondary mt-3"
+      onclick="buyItem('Laptop', 1)">
+      Buy
+    </button>
+  </div>
+</div>
+<!-- Biryani -->
+<div class="col-md-5">
+  <div class="card text-dark p-4">
+    <h5>🍛 Biryani</h5>
+    <p class="text-muted">Aromatic rice with rich spices</p>
+    <div class="price">₹1</div>
+    <button class="btn btn-info mt-3"
+      onclick="buyItem('Biryani', 1)">
+      Buy
+    </button>
+  </div>
+</div>
+
+<!-- Mutton -->
+<div class="col-md-5">
+  <div class="card text-dark p-4">
+    <h5>🍖 Mutton</h5>
+    <p class="text-muted">Tender & flavorful meat dish</p>
+    <div class="price">₹1</div>
+    <button class="btn btn-dark mt-3"
+      onclick="buyItem('Mutton', 1)">
+      Buy
+    </button>
+  </div>
+</div>
+
+    <!-- Cold Drink -->
+    <div class="col-md-5">
+      <div class="card text-dark p-4">
+        <h5>🥤 Cold Drink</h5>
+        <p class="text-muted">Chilled refreshment</p>
+        <div class="price">₹1</div>
+        <button class="btn btn-success mt-3"
+          onclick="buyItem('Cold Drink', 1)">
+          Buy
+        </button>
+      </div>
+    </div>
 
   </div>
 </div>
 
 <script>
-  // Render products
-  document.getElementById("items").innerHTML =
-    itemCard("Chips","🍟","Crunchy snack","btn-primary") +
-    itemCard("Cold Drink","🥤","Chilled refreshment","btn-success") +
-    itemCard("Chocolate","🍫","Sweet treat","btn-warning") +
-    itemCard("Kurkure","🍿","Masaledar snack","btn-danger") +
-    itemCard("Laptop","💻","Portable computer","btn-secondary") +
-    itemCard("Biryani","🍛","Aromatic rice dish","btn-info") +
-    itemCard("Mutton","🍖","Tender meat","btn-dark");
-
-  /* -------- PAYMENT -------- */
-  async function buyItem(item, amount) {
-
-    // collect address
-    const address =
-      addrName.value + ", " +
-      addrPhone.value + ", " +
-      addrAddress.value + ", " +
-      addrCity.value + " - " +
-      addrPin.value;
-
-    if (!addrName.value || !addrPhone.value || !addrAddress.value || !addrCity.value || !addrPin.value) {
-      alert("Please fill address before buying");
-      return;
-    }
-
-    const res = await fetch("/api/payments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔥 IMPORTANT FOR SESSION
-      body: JSON.stringify({ item, amount, address })
-    });
-
-    if (res.status === 401) {
-      alert("Please login first");
-      window.location.href = "/customer-login";
-      return;
-    }
-
-    if (!res.ok) {
-      alert("❌ Payment failed");
-      return;
-    }
-
-    alert("✅ Payment successful!");
+  // Ensure customer logged in
+  const customerId = localStorage.getItem("customer_id");
+  if (!customerId) {
+    alert("Please login again");
+    window.location.href = "/customer-login";
   }
 
+  /* -------- ADDRESS LOGIC -------- */
+  function toggleAddress() {
+    const section = document.getElementById("addressSection");
+    section.style.display = section.style.display === "none" ? "block" : "none";
+
+    const saved = JSON.parse(localStorage.getItem("customerAddress"));
+    if (saved) {
+      addrName.value = saved.name;
+      addrPhone.value = saved.phone;
+      addrAddress.value = saved.address;
+      addrCity.value = saved.city;
+      addrPin.value = saved.pin;
+    }
+  }
+
+  function saveAddress(e) {
+    e.preventDefault();
+
+    const address = {
+      name: addrName.value,
+      phone: addrPhone.value,
+      address: addrAddress.value,
+      city: addrCity.value,
+      pin: addrPin.value
+    };
+
+    localStorage.setItem("customerAddress", JSON.stringify(address));
+    alert("✅ Address saved successfully");
+    document.getElementById("addressSection").style.display = "none";
+  }
+
+  /* -------- PAYMENT -------- */
+  function buyItem(item, amount) {
+  const customerId = localStorage.getItem("customer_id");
+  const address = localStorage.getItem("customerAddress");
+
+  if (!address) {
+    alert("Please add address before buying");
+    return;
+  }
+
+  fetch("/api/payments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      customer_id: customerId,
+      item: item,
+      amount: amount,
+      address: address
+    })
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("✅ Payment successful!");
+  })
+  .catch(() => {
+    alert("❌ Payment failed");
+  });
+}
+
   function logout() {
+    localStorage.removeItem("customer_id");
     window.location.href = "/";
   }
 </script>
