@@ -119,6 +119,7 @@
               <th>Phone</th>
               <th>Message</th>
               <th>Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="messages"></tbody>
@@ -236,23 +237,59 @@
   }
 
   // MESSAGES
-  async function loadMessages() {
-    const res = await fetch("/api/messages");
-    const messages = await res.json();
-    const tbody = document.getElementById("messages");
-    tbody.innerHTML = "";
+async function loadMessages() {
+  const res = await fetch("/api/messages");
+  const messages = await res.json();
 
-    messages.forEach(m => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${m.name}</td>
-          <td>${m.phone}</td>
-          <td>${m.message}</td>
-          <td>${new Date(m.created_at).toLocaleString()}</td>
-        </tr>
-      `;
-    });
+  const tbody = document.getElementById("messages");
+  tbody.innerHTML = "";
+
+  if (messages.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted">
+          No messages found
+        </td>
+      </tr>
+    `;
+    return;
   }
+
+  messages.forEach(m => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${m.name || "N/A"}</td>
+        <td>${m.phone || "N/A"}</td>
+        <td>${m.message}</td>
+        <td>${new Date(m.created_at).toLocaleString()}</td>
+        <td>
+          <button
+            class="btn btn-sm btn-danger"
+            onclick="deleteMessage(${m.id})">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+async function deleteMessage(id) {
+  if (!confirm("Delete this message permanently?")) return;
+
+  const res = await fetch(`/api/messages/${id}`, {
+    method: "DELETE"
+  });
+
+  if (!res.ok) {
+    alert("Failed to delete message");
+    return;
+  }
+
+  loadMessages(); // refresh list
+}
+
+
 
   // RESET PASSWORD
   async function resetPassword(id) {

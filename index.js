@@ -276,6 +276,22 @@ app.get("/api/messages", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch messages" });
   }
 });
+// DELETE message (admin only)
+app.delete("/api/messages/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await pool.query(
+      "DELETE FROM messages WHERE id = $1",
+      [id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Delete message error:", err);
+    res.status(500).json({ error: "Failed to delete message" });
+  }
+});
 
 // ==========================
 // UNIQUE VISITOR COUNT
