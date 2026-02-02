@@ -7,6 +7,12 @@ const path = require("path");
 require("dotenv").config();
 
 const app = express();
+function requireAdmin(req, res, next) {
+  if (!req.session || !req.session.admin) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+}
 
 // ==========================
 // DATABASE CONNECTION (MUST BE FIRST)
@@ -117,6 +123,7 @@ app.post("/admin-login", (req, res) => {
     username === process.env.ADMIN_USER &&
     password === process.env.ADMIN_PASS
   ) {
+    req.session.admin = true; // ✅ session set
     return res.redirect("/admin");
   }
 
@@ -277,7 +284,7 @@ app.get("/api/messages", async (req, res) => {
   }
 });
 // DELETE message (admin only)
-app.delete("/api/messages/:id", async (req, res) => {
+app.delete("/api/messages/:id",requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -290,6 +297,17 @@ app.delete("/api/messages/:id", async (req, res) => {
   } catch (err) {
     console.error("Delete message error:", err);
     res.status(500).json({ error: "Failed to delete message" });
+  }
+});
+
+// DELETE ALL messages (ADMIN ONLY)
+app.delete("/api/messages",requireAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM messages");
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete messages" });
   }
 });
 

@@ -107,6 +107,22 @@
   </div>
 
   <!-- MESSAGES -->
+<input
+  type="text"
+  id="messageSearch"
+  class="form-control mb-3"
+  placeholder="Search messages..."
+  oninput="filterMessages()"
+/>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h5 class="section-title mb-0">Customer Messages</h5>
+
+  <button class="btn btn-danger btn-sm" onclick="deleteAllMessages()">
+    🗑 Delete All
+  </button>
+</div>
+
   <div class="card mb-4">
     <div class="card-body">
       <h5 class="section-title">Customer Messages</h5>
@@ -133,6 +149,7 @@
 <script>
   let allPayments = [];
   let allCustomers = [];
+  let allMessages = [];
 
   // VISITS
   async function loadVisits() {
@@ -239,8 +256,10 @@
   // MESSAGES
 async function loadMessages() {
   const res = await fetch("/api/messages");
-  const messages = await res.json();
-
+  allMessages = await res.json();
+  renderMessages(allMessages);
+}
+function renderMessages(messages) {
   const tbody = document.getElementById("messages");
   tbody.innerHTML = "";
 
@@ -263,8 +282,7 @@ async function loadMessages() {
         <td>${m.message}</td>
         <td>${new Date(m.created_at).toLocaleString()}</td>
         <td>
-          <button
-            class="btn btn-sm btn-danger"
+          <button class="btn btn-sm btn-danger"
             onclick="deleteMessage(${m.id})">
             Delete
           </button>
@@ -274,19 +292,19 @@ async function loadMessages() {
   });
 }
 
-async function deleteMessage(id) {
-  if (!confirm("Delete this message permanently?")) return;
+function filterMessages() {
+  const query = document
+    .getElementById("messageSearch")
+    .value
+    .toLowerCase();
 
-  const res = await fetch(`/api/messages/${id}`, {
-    method: "DELETE"
-  });
+  const filtered = allMessages.filter(m =>
+    (m.name || "").toLowerCase().includes(query) ||
+    (m.phone || "").includes(query) ||
+    m.message.toLowerCase().includes(query)
+  );
 
-  if (!res.ok) {
-    alert("Failed to delete message");
-    return;
-  }
-
-  loadMessages(); // refresh list
+  renderMessages(filtered);
 }
 
 
