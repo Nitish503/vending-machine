@@ -4,18 +4,13 @@
 const express = require("express");
 const { Pool } = require("pg");
 const path = require("path");
+const session = require("express-session");
 require("dotenv").config();
 
 const app = express();
-function requireAdmin(req, res, next) {
-  if (!req.session || !req.session.admin) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  next();
-}
 
 // ==========================
-// DATABASE CONNECTION (MUST BE FIRST)
+// DATABASE CONNECTION
 // ==========================
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -28,8 +23,28 @@ const pool = new Pool({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "vending_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } // Render handles HTTPS
+  })
+);
+
 // ==========================
-// UNIQUE VISITOR TRACKING
+// ADMIN AUTH MIDDLEWARE
+// ==========================
+function requireAdmin(req, res, next) {
+  if (!req.session.admin) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+}
+
+// ==========================
+// VISITOR TRACKING (UNIQUE)
 // ==========================
 app.use(async (req, res, next) => {
   try {
@@ -50,7 +65,7 @@ app.use(async (req, res, next) => {
 });
 
 // ==========================
-// DATABASE INITIALIZATION
+// DATABASE INIT
 // ==========================
 async function initDB() {
   try {
@@ -70,8 +85,25 @@ async function initDB() {
         customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
         item TEXT NOT NULL,
         amount NUMERIC(10,2) NOT NULL,
-        status TEXT DEFAULT 'SUCCESS',
+        address TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        name TEXT,
+        phone TEXT,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visits (
+        ip TEXT PRIMARY KEY,
+        first_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -85,33 +117,30 @@ initDB();
 // ==========================
 // PAGES
 // ==========================
-app.get("/products", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "customer.html"));
-});
-
-app.get("/", (req, res) =>
+app.get("/", (_, res) =>
   res.sendFile(path.join(__dirname, "public", "index.html"))
 );
 
-app.get("/admin-login", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "admin-login.html"))
+app.get("/products", (_, res) =>
+  res.sendFile(path.join(__dirname, "public", "customer.html"))
 );
 
-app.get("/admin", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "admin.html"))
-);
-
-app.get("/customer-login", (req, res) =>
+app.get("/customer-login", (_, res) =>
   res.sendFile(path.join(__dirname, "public", "customer-login.html"))
 );
 
-app.get("/customer-register", (req, res) =>
+app.get("/customer-register", (_, res) =>
   res.sendFile(path.join(__dirname, "public", "customer-register.html"))
 );
 
-app.get("/customer", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "customer.html"))
+app.get("/admin-login", (_, res) =>
+  res.sendFile(path.join(__dirname, "public", "admin-login.html"))
 );
+
+app.get("/admin", (req, res) => {
+  if (!req.session.admin) return res.redirect("/admin-login");
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
 
 // ==========================
 // ADMIN LOGIN
@@ -123,7 +152,7 @@ app.post("/admin-login", (req, res) => {
     username === process.env.ADMIN_USER &&
     password === process.env.ADMIN_PASS
   ) {
-    req.session.admin = true; // ✅ session set
+    req.session.admin = true;
     return res.redirect("/admin");
   }
 
@@ -133,7 +162,6 @@ app.post("/admin-login", (req, res) => {
 // ==========================
 // CUSTOMER REGISTER
 // ==========================
-
 app.post("/register", async (req, res) => {
   try {
     const { name, mobile, password } = req.body;
@@ -142,105 +170,75 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ error: "All fields required" });
     }
 
-    // Check existing customer
     const result = await pool.query(
-      "SELECT id, password FROM customers WHERE mobile = $1",
+      "SELECT password FROM customers WHERE mobile=$1",
       [mobile]
     );
 
-    // Case 1: Customer exists AND password is NULL → re-registration allowed
-    if (result.rows.length > 0 && result.rows[0].password === null) {
-      await pool.query(
-        "UPDATE customers SET name = $1, password = $2 WHERE mobile = $3",
-        [name, password, mobile]
-      );
-
-      return res.json({ success: true, reRegistered: true });
-    }
-
-    // Case 2: Customer exists and password NOT NULL → block
-    if (result.rows.length > 0) {
+    if (result.rows.length && result.rows[0].password !== null) {
       return res.status(409).json({ error: "Already registered" });
     }
 
-    // Case 3: New customer
+    if (result.rows.length && result.rows[0].password === null) {
+      await pool.query(
+        "UPDATE customers SET name=$1, password=$2 WHERE mobile=$3",
+        [name, password, mobile]
+      );
+      return res.json({ success: true, reRegistered: true });
+    }
+
     await pool.query(
-      "INSERT INTO customers (name, mobile, password) VALUES ($1, $2, $3)",
+      "INSERT INTO customers (name, mobile, password) VALUES ($1,$2,$3)",
       [name, mobile, password]
     );
 
     res.json({ success: true });
-
   } catch (err) {
-    console.error("REGISTER ERROR:", err);
+    console.error(err);
     res.status(500).json({ error: "Registration failed" });
   }
 });
 
 // ==========================
-// CUSTOMER LOGIN
+// CUSTOMER LOGIN (API)
 // ==========================
 app.post("/api/customer-login", async (req, res) => {
-  try {
-    const { mobile, password } = req.body;
+  const { mobile, password } = req.body;
 
-    const result = await pool.query(
-      "SELECT id, password FROM customers WHERE mobile=$1",
-      [mobile]
-    );
+  const result = await pool.query(
+    "SELECT id, password FROM customers WHERE mobile=$1",
+    [mobile]
+  );
 
-    if (result.rows.length === 0) {
-      return res.json({ error: "Invalid mobile" });
-    }
-
-    const customer = result.rows[0];
-
-    if (customer.password === null) {
-      return res.json({ resetRequired: true });
-    }
-
-    if (customer.password !== password) {
-      return res.json({ error: "Invalid password" });
-    }
-
-    res.json({ customer_id: customer.id });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+  if (!result.rows.length) {
+    return res.json({ error: "Invalid mobile" });
   }
-});
 
-// messages post
-app.post("/api/messages", async (req, res) => {
-  try {
-    const { name, phone, message } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: "Message required" });
-    }
-
-    await pool.query(
-      "INSERT INTO messages (name, phone, message) VALUES ($1, $2, $3)",
-      [name || "Anonymous", phone || "-", message]
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to send message" });
+  if (result.rows[0].password === null) {
+    return res.json({ resetRequired: true });
   }
+
+  if (result.rows[0].password !== password) {
+    return res.json({ error: "Invalid password" });
+  }
+
+  res.json({ customer_id: result.rows[0].id });
 });
 
 // ==========================
-// PAYMENTS
+// PAYMENTS (LOGIN REQUIRED)
 // ==========================
 app.post("/api/payments", async (req, res) => {
-  try {
-    const { customer_id, item, amount, address } = req.body;
+  const { customer_id, item, amount, address } = req.body;
 
+  if (!customer_id) {
+    return res.status(401).json({ error: "Login required" });
+  }
+
+  try {
     await pool.query(
       `INSERT INTO payments (customer_id, item, amount, address)
-       VALUES ($1, $2, $3, $4)`,
+       VALUES ($1,$2,$3,$4)`,
       [customer_id, item, amount, address]
     );
 
@@ -252,83 +250,61 @@ app.post("/api/payments", async (req, res) => {
 });
 
 // ==========================
-// ADMIN DATA
+// PUBLIC MESSAGES (NO LOGIN)
 // ==========================
-app.get("/api/customers", async (req, res) => {
+app.post("/api/messages", async (req, res) => {
+  const { name, phone, message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: "Message required" });
+  }
+
+  await pool.query(
+    "INSERT INTO messages (name, phone, message) VALUES ($1,$2,$3)",
+    [name || null, phone || null, message]
+  );
+
+  res.json({ success: true });
+});
+
+// ==========================
+// ADMIN APIs
+// ==========================
+app.get("/api/customers", requireAdmin, async (_, res) => {
   const result = await pool.query(
-    "SELECT id, name, mobile, password FROM customers ORDER BY id DESC"
+    "SELECT id,name,mobile,password FROM customers ORDER BY id DESC"
   );
   res.json(result.rows);
 });
 
-app.get("/api/payments", async (req, res) => {
+app.get("/api/payments", requireAdmin, async (_, res) => {
+  const result = await pool.query(`
+    SELECT p.id, c.name, p.item, p.amount, p.address, p.created_at
+    FROM payments p
+    JOIN customers c ON p.customer_id = c.id
+    ORDER BY p.id DESC
+  `);
+  res.json(result.rows);
+});
+
+app.get("/api/messages", requireAdmin, async (_, res) => {
   const result = await pool.query(
-    `SELECT p.id, c.name, p.item, p.amount, p.address, p.created_at
-     FROM payments p
-     JOIN customers c ON p.customer_id = c.id
-     ORDER BY p.id DESC`
+    "SELECT * FROM messages ORDER BY id DESC"
   );
   res.json(result.rows);
 });
 
-// admin messages get routes
-app.get("/api/messages", async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT * FROM messages ORDER BY id DESC"
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch messages" });
-  }
-});
-// DELETE message (admin only)
-app.delete("/api/messages/:id",requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await pool.query(
-      "DELETE FROM messages WHERE id = $1",
-      [id]
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Delete message error:", err);
-    res.status(500).json({ error: "Failed to delete message" });
-  }
+app.delete("/api/messages/:id", requireAdmin, async (req, res) => {
+  await pool.query("DELETE FROM messages WHERE id=$1", [req.params.id]);
+  res.json({ success: true });
 });
 
-// DELETE ALL messages (ADMIN ONLY)
-app.delete("/api/messages",requireAdmin, async (req, res) => {
-  try {
-    await pool.query("DELETE FROM messages");
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to delete messages" });
-  }
+app.get("/api/visitors/count", requireAdmin, async (_, res) => {
+  const result = await pool.query("SELECT COUNT(*) FROM visits");
+  res.json({ total: result.rows[0].count });
 });
 
-// ==========================
-// UNIQUE VISITOR COUNT
-// ==========================
-app.get("/api/visitors/count", async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT COUNT(*) AS total FROM visits"
-    );
-    res.json({ total: result.rows[0].total });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch visitor count" });
-  }
-});
-
-// ==========================
-// ADMIN RESET PASSWORD
-// ==========================
-app.post("/api/admin/reset-password/:id", async (req, res) => {
+app.post("/api/admin/reset-password/:id", requireAdmin, async (req, res) => {
   await pool.query(
     "UPDATE customers SET password=NULL WHERE id=$1",
     [req.params.id]
