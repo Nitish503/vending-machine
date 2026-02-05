@@ -4,23 +4,17 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const session = require("express-session");
-const RedisStore = require("connect-redis").default;
-const { createClient } = require("redis");
-const rateLimit = require("express-rate-limit");
 const { Pool } = require("pg");
 const path = require("path");
+const { createClient } = require("redis");
+const RedisStore = require("connect-redis").default;
 require("dotenv").config();
 
 const app = express();
 const SALT_ROUNDS = 10;
 
 // ==========================
-// TRUST PROXY (RENDER REQUIRED)
-// ==========================
-app.set("trust proxy", 1);
-
-// ==========================
-// DATABASE
+// DATABASE CONNECTION
 // ==========================
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -28,32 +22,20 @@ const pool = new Pool({
 });
 
 // ==========================
-// REDIS
+// REDIS CLIENT (RENDER)
 // ==========================
 const redisClient = createClient({
   url: process.env.REDIS_URL
 });
 
-redisClient.connect();
-redisClient.on("connect", () => console.log("✅ Redis connected"));
-redisClient.on("error", err => console.error("❌ Redis error", err));
-
-// ==========================
-// SESSION (REDIS-BACKED)
-// ==========================
-app.use(
-  session({
-    store: new RedisStore({ client: redisClient }),
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: true,
-      httpOnly: true,
-      sameSite: "lax"
-    }
-  })
+redisClient.on("error", (err) =>
+  console.error("❌ Redis error:", err)
 );
+
+(async () => {
+  await redisClient.connect();
+  console.log("✅ Redis connected");
+})();
 
 // ==========================
 // MIDDLEWARE
@@ -63,41 +45,46 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // ==========================
-// RATE LIMITERS (REDIS)
+// SESSION (REDIS STORE)
 // ==========================
-const adminLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-const customerLoginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 5
-});
-
-const messageLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 10
-});
+app.use(
+  session({
+    store: new RedisStore({
+      client: redisClient,
+      prefix: "sess:"
+    }),
+    name: "vending.sid",
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: true,       // Render uses HTTPS
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 2 // 2 hours
+    }
+  })
+);
 
 // ==========================
 // AUTH MIDDLEWARE
 // ==========================
 function requireAdmin(req, res, next) {
-  if (!req.session.admin) return res.status(401).json({ error: "Unauthorized" });
+  if (!req.session.admin) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
   next();
 }
 
 function requireCustomer(req, res, next) {
-  if (!req.session.customerId)
+  if (!req.session.customerId) {
     return res.status(401).json({ error: "Login required" });
+  }
   next();
 }
 
 // ==========================
-// VISITOR TRACKING
+// VISITOR TRACKING (PAGE LOAD ONLY)
 // ==========================
 app.use(async (req, res, next) => {
   if (req.method === "GET" && !req.path.startsWith("/api")) {
@@ -112,7 +99,9 @@ app.use(async (req, res, next) => {
           [ip]
         );
       }
-    } catch (e) {}
+    } catch (err) {
+      console.error("Visit tracking error:", err.message);
+    }
   }
   next();
 });
@@ -134,9 +123,9 @@ async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS payments (
       id SERIAL PRIMARY KEY,
-      customer_id INTEGER REFERENCES customers(id),
-      item TEXT,
-      amount NUMERIC(10,2),
+      customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
+      item TEXT NOT NULL,
+      amount NUMERIC(10,2) NOT NULL,
       address TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -166,40 +155,62 @@ initDB();
 // ==========================
 // PAGES
 // ==========================
-app.get("/", (_, res) => res.sendFile(path.join(__dirname, "public/index.html")));
+app.get("/", (_, res) =>
+  res.sendFile(path.join(__dirname, "public/index.html"))
+);
+
 app.get("/products", (_, res) =>
   res.sendFile(path.join(__dirname, "public/customer.html"))
 );
+
 app.get("/customer-login", (_, res) =>
   res.sendFile(path.join(__dirname, "public/customer-login.html"))
 );
+
 app.get("/customer-register", (_, res) =>
   res.sendFile(path.join(__dirname, "public/customer-register.html"))
 );
+
 app.get("/admin-login", (_, res) =>
   res.sendFile(path.join(__dirname, "public/admin-login.html"))
 );
+
 app.get("/admin", requireAdmin, (_, res) =>
   res.sendFile(path.join(__dirname, "public/admin.html"))
 );
 
 // ==========================
-// ADMIN LOGIN (SAFE + LIMITED)
+// ADMIN LOGIN (HASHED)
 // ==========================
-app.post("/admin-login", adminLimiter, async (req, res) => {
-  const { username, password } = req.body;
+app.post("/admin-login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
 
-  if (username !== process.env.ADMIN_USER)
-    return res.status(401).send("Invalid credentials");
+    if (username !== process.env.ADMIN_USER) {
+      return res.status(401).send("Invalid credentials");
+    }
 
-  if (!process.env.ADMIN_PASS_HASH)
-    return res.status(500).send("Admin not configured");
+    if (!process.env.ADMIN_PASS_HASH) {
+      console.error("❌ ADMIN_PASS_HASH missing");
+      return res.status(500).send("Server misconfigured");
+    }
 
-  const ok = await bcrypt.compare(password, process.env.ADMIN_PASS_HASH);
-  if (!ok) return res.status(401).send("Invalid credentials");
+    const isMatch = await bcrypt.compare(
+      password,
+      process.env.ADMIN_PASS_HASH
+    );
 
-  req.session.admin = true;
-  res.redirect("/admin");
+    if (!isMatch) {
+      return res.status(401).send("Invalid credentials");
+    }
+
+    req.session.admin = true;
+    res.redirect("/admin");
+
+  } catch (err) {
+    console.error("ADMIN LOGIN ERROR:", err);
+    res.status(500).send("Server error");
+  }
 });
 
 // ==========================
@@ -207,22 +218,24 @@ app.post("/admin-login", adminLimiter, async (req, res) => {
 // ==========================
 app.post("/register", async (req, res) => {
   const { name, mobile, password } = req.body;
-  if (!name || !mobile || !password)
+  if (!name || !mobile || !password) {
     return res.status(400).json({ error: "All fields required" });
+  }
 
-  const hashed = await bcrypt.hash(password, SALT_ROUNDS);
-
-  const existing = await pool.query(
+  const result = await pool.query(
     "SELECT password FROM customers WHERE mobile=$1",
     [mobile]
   );
 
-  if (existing.rows.length && existing.rows[0].password !== null)
-    return res.status(409).json({ error: "Already registered" });
+  const hashed = await bcrypt.hash(password, SALT_ROUNDS);
 
-  if (existing.rows.length) {
+  if (result.rows.length && result.rows[0].password !== null) {
+    return res.status(409).json({ error: "Already registered" });
+  }
+
+  if (result.rows.length) {
     await pool.query(
-      "UPDATE customers SET name=$1,password=$2 WHERE mobile=$3",
+      "UPDATE customers SET name=$1, password=$2 WHERE mobile=$3",
       [name, hashed, mobile]
     );
     return res.json({ success: true, reRegistered: true });
@@ -239,23 +252,30 @@ app.post("/register", async (req, res) => {
 // ==========================
 // CUSTOMER LOGIN
 // ==========================
-app.post("/api/customer-login", customerLoginLimiter, async (req, res) => {
+app.post("/api/customer-login", async (req, res) => {
   const { mobile, password } = req.body;
 
-  const r = await pool.query(
+  const result = await pool.query(
     "SELECT id,password FROM customers WHERE mobile=$1",
     [mobile]
   );
 
-  if (!r.rows.length) return res.json({ error: "Invalid mobile" });
+  if (!result.rows.length) {
+    return res.json({ error: "Invalid mobile" });
+  }
 
-  if (r.rows[0].password === null)
+  const customer = result.rows[0];
+
+  if (customer.password === null) {
     return res.json({ resetRequired: true });
+  }
 
-  const ok = await bcrypt.compare(password, r.rows[0].password);
-  if (!ok) return res.json({ error: "Invalid password" });
+  const isMatch = await bcrypt.compare(password, customer.password);
+  if (!isMatch) {
+    return res.json({ error: "Invalid password" });
+  }
 
-  req.session.customerId = r.rows[0].id;
+  req.session.customerId = customer.id;
   res.json({ success: true });
 });
 
@@ -266,7 +286,8 @@ app.post("/api/payments", requireCustomer, async (req, res) => {
   const { item, amount, address } = req.body;
 
   await pool.query(
-    "INSERT INTO payments (customer_id,item,amount,address) VALUES ($1,$2,$3,$4)",
+    `INSERT INTO payments (customer_id,item,amount,address)
+     VALUES ($1,$2,$3,$4)`,
     [req.session.customerId, item, amount, address]
   );
 
@@ -274,9 +295,9 @@ app.post("/api/payments", requireCustomer, async (req, res) => {
 });
 
 // ==========================
-// PUBLIC MESSAGES (LIMITED)
+// PUBLIC MESSAGES
 // ==========================
-app.post("/api/messages", messageLimiter, async (req, res) => {
+app.post("/api/messages", async (req, res) => {
   const { name, phone, message } = req.body;
   if (!message) return res.status(400).json({ error: "Message required" });
 
