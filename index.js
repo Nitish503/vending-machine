@@ -154,11 +154,20 @@ app.get("/admin", requireAdmin, (_, res) =>
 app.post("/admin-login", async (req, res) => {
   const { username, password } = req.body;
 
+  if (!process.env.ADMIN_PASS_HASH) {
+    console.error("❌ ADMIN_PASS_HASH missing");
+    return res.status(500).send("Server misconfigured");
+  }
+
   if (username !== process.env.ADMIN_USER) {
     return res.status(401).send("Invalid credentials");
   }
 
-  const isMatch = await bcrypt.compare(password, process.env.ADMIN_PASS_HASH);
+  const isMatch = await bcrypt.compare(
+    password,
+    process.env.ADMIN_PASS_HASH
+  );
+
   if (!isMatch) {
     return res.status(401).send("Invalid credentials");
   }
@@ -166,7 +175,6 @@ app.post("/admin-login", async (req, res) => {
   req.session.admin = true;
   res.redirect("/admin");
 });
-
 // ==========================
 // CUSTOMER REGISTER
 // ==========================
