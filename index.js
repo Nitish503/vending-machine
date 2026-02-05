@@ -152,28 +152,38 @@ app.get("/admin", requireAdmin, (_, res) =>
 // ADMIN LOGIN (HASHED)
 // ==========================
 app.post("/admin-login", async (req, res) => {
-  const { username, password } = req.body;
+  try {
+    const { username, password } = req.body;
 
-  if (!process.env.ADMIN_PASS_HASH) {
-    console.error("❌ ADMIN_PASS_HASH missing");
-    return res.status(500).send("Server misconfigured");
+    // 1. Username check
+    if (username !== process.env.ADMIN_USER) {
+      return res.status(401).send("Invalid credentials");
+    }
+
+    // 2. Password hash must exist
+    if (!process.env.ADMIN_PASS_HASH) {
+      console.error("ADMIN_PASS_HASH missing");
+      return res.status(500).send("Server misconfigured");
+    }
+
+    // 3. bcrypt compare
+    const isMatch = await bcrypt.compare(
+      password,
+      process.env.ADMIN_PASS_HASH
+    );
+
+    if (!isMatch) {
+      return res.status(401).send("Invalid credentials");
+    }
+
+    // 4. Success
+    req.session.admin = true;
+    res.redirect("/admin");
+
+  } catch (err) {
+    console.error("Admin login error:", err);
+    res.status(500).send("Server error");
   }
-
-  if (username !== process.env.ADMIN_USER) {
-    return res.status(401).send("Invalid credentials");
-  }
-
-  const isMatch = await bcrypt.compare(
-    password,
-    process.env.ADMIN_PASS_HASH
-  );
-
-  if (!isMatch) {
-    return res.status(401).send("Invalid credentials");
-  }
-
-  req.session.admin = true;
-  res.redirect("/admin");
 });
 // ==========================
 // CUSTOMER REGISTER
