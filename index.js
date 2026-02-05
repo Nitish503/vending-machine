@@ -1,6 +1,7 @@
 // ==========================
 // BASIC SETUP
 // ==========================
+const bcrypt = require("bcrypt");
 const express = require("express");
 const { Pool } = require("pg");
 const path = require("path");
@@ -180,17 +181,21 @@ app.post("/register", async (req, res) => {
     }
 
     if (result.rows.length && result.rows[0].password === null) {
-      await pool.query(
-        "UPDATE customers SET name=$1, password=$2 WHERE mobile=$3",
-        [name, password, mobile]
-      );
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+await pool.query(
+  "UPDATE customers SET name=$1, password=$2 WHERE mobile=$3",
+  [name, hashedPassword, mobile]
+);
       return res.json({ success: true, reRegistered: true });
     }
 
-    await pool.query(
-      "INSERT INTO customers (name, mobile, password) VALUES ($1,$2,$3)",
-      [name, mobile, password]
-    );
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+await pool.query(
+  "INSERT INTO customers (name, mobile, password) VALUES ($1,$2,$3)",
+  [name, mobile, hashedPassword]
+);
 
     res.json({ success: true });
   } catch (err) {
@@ -218,9 +223,11 @@ app.post("/api/customer-login", async (req, res) => {
     return res.json({ resetRequired: true });
   }
 
-  if (result.rows[0].password !== password) {
-    return res.json({ error: "Invalid password" });
-  }
+const isMatch = await bcrypt.compare(password, customer.password);
+
+if (!isMatch) {
+  return res.json({ error: "Invalid password" });
+}
 
   res.json({ customer_id: result.rows[0].id });
 });
