@@ -7,7 +7,10 @@ const session = require("express-session");
 const { Pool } = require("pg");
 const path = require("path");
 const { createClient } = require("redis");
+
+// ✅ connect-redis v9 FIX (VERY IMPORTANT)
 const RedisStore = require("connect-redis").default;
+
 require("dotenv").config();
 
 const app = express();
@@ -22,13 +25,13 @@ const pool = new Pool({
 });
 
 // ==========================
-// REDIS CLIENT (RENDER)
+// REDIS CONNECTION
 // ==========================
 const redisClient = createClient({
   url: process.env.REDIS_URL
 });
 
-redisClient.on("error", (err) =>
+redisClient.on("error", err =>
   console.error("❌ Redis error:", err)
 );
 
@@ -45,7 +48,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // ==========================
-// SESSION (REDIS STORE)
+// SESSION (REDIS BACKED)
 // ==========================
 app.use(
   session({
@@ -58,7 +61,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: true,       // Render uses HTTPS
+      secure: true,        // REQUIRED on Render
       httpOnly: true,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 2 // 2 hours
@@ -183,34 +186,23 @@ app.get("/admin", requireAdmin, (_, res) =>
 // ADMIN LOGIN (HASHED)
 // ==========================
 app.post("/admin-login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    if (username !== process.env.ADMIN_USER) {
-      return res.status(401).send("Invalid credentials");
-    }
-
-    if (!process.env.ADMIN_PASS_HASH) {
-      console.error("❌ ADMIN_PASS_HASH missing");
-      return res.status(500).send("Server misconfigured");
-    }
-
-    const isMatch = await bcrypt.compare(
-      password,
-      process.env.ADMIN_PASS_HASH
-    );
-
-    if (!isMatch) {
-      return res.status(401).send("Invalid credentials");
-    }
-
-    req.session.admin = true;
-    res.redirect("/admin");
-
-  } catch (err) {
-    console.error("ADMIN LOGIN ERROR:", err);
-    res.status(500).send("Server error");
+  if (username !== process.env.ADMIN_USER) {
+    return res.status(401).send("Invalid credentials");
   }
+
+  const isMatch = await bcrypt.compare(
+    password,
+    process.env.ADMIN_PASS_HASH
+  );
+
+  if (!isMatch) {
+    return res.status(401).send("Invalid credentials");
+  }
+
+  req.session.admin = true;
+  res.redirect("/admin");
 });
 
 // ==========================
@@ -218,24 +210,25 @@ app.post("/admin-login", async (req, res) => {
 // ==========================
 app.post("/register", async (req, res) => {
   const { name, mobile, password } = req.body;
+
   if (!name || !mobile || !password) {
     return res.status(400).json({ error: "All fields required" });
   }
 
-  const result = await pool.query(
+  const existing = await pool.query(
     "SELECT password FROM customers WHERE mobile=$1",
     [mobile]
   );
 
   const hashed = await bcrypt.hash(password, SALT_ROUNDS);
 
-  if (result.rows.length && result.rows[0].password !== null) {
+  if (existing.rows.length && existing.rows[0].password !== null) {
     return res.status(409).json({ error: "Already registered" });
   }
 
-  if (result.rows.length) {
+  if (existing.rows.length) {
     await pool.query(
-      "UPDATE customers SET name=$1, password=$2 WHERE mobile=$3",
+      "UPDATE customers SET name=$1,password=$2 WHERE mobile=$3",
       [name, hashed, mobile]
     );
     return res.json({ success: true, reRegistered: true });
@@ -280,7 +273,7 @@ app.post("/api/customer-login", async (req, res) => {
 });
 
 // ==========================
-// PAYMENTS
+// PAYMENTS (SESSION BASED)
 // ==========================
 app.post("/api/payments", requireCustomer, async (req, res) => {
   const { item, amount, address } = req.body;
@@ -295,11 +288,14 @@ app.post("/api/payments", requireCustomer, async (req, res) => {
 });
 
 // ==========================
-// PUBLIC MESSAGES
+// PUBLIC MESSAGES (NO LOGIN)
 // ==========================
 app.post("/api/messages", async (req, res) => {
   const { name, phone, message } = req.body;
-  if (!message) return res.status(400).json({ error: "Message required" });
+
+  if (!message) {
+    return res.status(400).json({ error: "Message required" });
+  }
 
   await pool.query(
     "INSERT INTO messages (name,phone,message) VALUES ($1,$2,$3)",
@@ -344,9 +340,10 @@ app.get("/api/visitors/count", requireAdmin, async (_, res) => {
 });
 
 app.post("/api/admin/reset-password/:id", requireAdmin, async (req, res) => {
-  await pool.query("UPDATE customers SET password=NULL WHERE id=$1", [
-    req.params.id
-  ]);
+  await pool.query(
+    "UPDATE customers SET password=NULL WHERE id=$1",
+    [req.params.id]
+  );
   res.json({ success: true });
 });
 
