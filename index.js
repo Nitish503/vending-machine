@@ -152,33 +152,23 @@ app.get("/admin", requireAdmin, (_, res) =>
 // ADMIN LOGIN (HASHED)
 // ==========================
 app.post("/admin-login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    console.log("👉 ADMIN LOGIN ATTEMPT");
-    console.log("Username entered:", username);
-    console.log("Password entered:", password);
-    console.log("ENV ADMIN_USER:", process.env.ADMIN_USER);
-    console.log("ENV HASH exists:", !!process.env.ADMIN_PASS_HASH);
-
-    const isMatch = await bcrypt.compare(
-      password,
-      process.env.ADMIN_PASS_HASH
-    );
-
-    console.log("bcrypt match result:", isMatch);
-
-    if (username !== process.env.ADMIN_USER || !isMatch) {
-      return res.status(401).send("Invalid credentials");
-    }
-
-    req.session.admin = true;
-    res.redirect("/admin");
-
-  } catch (err) {
-    console.error("ADMIN LOGIN ERROR:", err);
-    res.status(500).send("Server error");
+  if (username !== process.env.ADMIN_USER) {
+    return res.status(401).send("Invalid credentials");
   }
+
+  const isMatch = await bcrypt.compare(
+    password,
+    process.env.ADMIN_PASS_HASH
+  );
+
+  if (!isMatch) {
+    return res.status(401).send("Invalid credentials");
+  }
+
+  req.session.admin = true;
+  res.redirect("/admin");
 });
 // ==========================
 // CUSTOMER REGISTER
