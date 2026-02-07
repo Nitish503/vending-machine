@@ -304,24 +304,54 @@
 
 
 <script>
-  function sendMessage(e) {
+  async function sendMessage(e) {
     e.preventDefault();
 
-    const name = document.getElementById("msgName").value;
-    const phone = document.getElementById("msgPhone").value;
-    const message = document.getElementById("msgText").value;
+    const name = document.getElementById("msgName").value.trim();
+    const phone = document.getElementById("msgPhone").value.trim();
+    const message = document.getElementById("msgText").value.trim();
 
-    fetch("/api/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, message })
-    })
-    .then(res => res.json())
-    .then(() => {
+    if (!name || !phone || !message) {
+      alert("⚠️ Please fill Name, Mobile and Message");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, message })
+      });
+
+      const data = await res.json();
+
+      // ❌ RATE LIMIT
+      if (res.status === 429) {
+        alert("⏳ Too many messages sent. Please try again later.");
+        return;
+      }
+
+      // ❌ NOT REGISTERED
+      if (res.status === 403) {
+        alert("🚫 You are not registered. Please register to send messages.");
+        window.location.href = "/customer-register";
+        return;
+      }
+
+      // ❌ OTHER ERRORS
+      if (!res.ok) {
+        alert(data.error || "❌ Failed to send message");
+        return;
+      }
+
+      // ✅ SUCCESS
       alert("✅ Message sent to admin");
       document.getElementById("msgText").value = "";
-    })
-    .catch(() => alert("❌ Failed to send message"));
+
+    } catch (err) {
+      alert("❌ Network error. Please try again.");
+      console.error(err);
+    }
   }
 </script>
 

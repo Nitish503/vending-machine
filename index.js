@@ -349,34 +349,60 @@ app.post("/api/payments", requireCustomer, async (req, res) => {
 
   res.json({ success: true });
 });
-
 // ==========================
-// PUBLIC MESSAGES (RATE LIMITED)
+// PUBLIC MESSAGES
+// (REGISTERED USERS + RATE LIMITED)
 // ==========================
 app.post("/api/messages", async (req, res) => {
-  const ip = req.ip;
+  try {
+    const { name, phone, message } = req.body;
 
-  const allowed = await rateLimit({
-    key: `rl:messages:${ip}`,
-    limit: 10,
-    windowSec: 10 * 60
-  });
+    if (!name || !phone || !message) {
+      return res.status(400).json({
+        error: "Name, mobile number and message are required"
+      });
+    }
 
-  if (!allowed) {
-    return res.status(429).json({
-      error: "Too many messages sent"
+    // 🔍 Check if customer is registered
+    const customer = await pool.query(
+      "SELECT id FROM customers WHERE mobile = $1",
+      [phone]
+    );
+
+    if (customer.rows.length === 0) {
+      return res.status(403).json({
+        error: "You are not registered. Please register to send a message."
+      });
+    }
+
+    // 🚦 RATE LIMIT (per mobile + IP)
+    const ip = req.ip;
+    const rateKey = `rl:message:${phone}:${ip}`;
+
+    const allowed = await rateLimit({
+      key: rateKey,
+      limit: 5,          // ⬅ max 5 messages
+      windowSec: 600     // ⬅ per 10 minutes
     });
+
+    if (!allowed) {
+      return res.status(429).json({
+        error: "Too many messages sent. Please try again later."
+      });
+    }
+
+    // ✅ Save message
+    await pool.query(
+      "INSERT INTO messages (name, phone, message) VALUES ($1, $2, $3)",
+      [name, phone, message]
+    );
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("MESSAGE ERROR:", err);
+    res.status(500).json({ error: "Failed to send message" });
   }
-
-  const { name, phone, message } = req.body;
-  if (!message) return res.status(400).json({ error: "Message required" });
-
-  await pool.query(
-    "INSERT INTO messages (name,phone,message) VALUES ($1,$2,$3)",
-    [name || null, phone || null, message]
-  );
-
-  res.json({ success: true });
 });
 
 // ==========================
