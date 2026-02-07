@@ -8,7 +8,6 @@ const { Pool } = require("pg");
 const path = require("path");
 require("dotenv").config();
 
-// ✅ CORRECT for connect-redis v9
 const { RedisStore } = require("connect-redis");
 const { createClient } = require("redis");
 
@@ -39,6 +38,17 @@ redisClient.connect().then(() => {
 });
 
 // ==========================
+// REDIS RATE LIMIT HELPER ✅ FIX
+// ==========================
+async function rateLimit({ key, limit, windowSec }) {
+  const count = await redisClient.incr(key);
+  if (count === 1) {
+    await redisClient.expire(key, windowSec);
+  }
+  return count <= limit;
+}
+
+// ==========================
 // MIDDLEWARE
 // ==========================
 app.use(express.json());
@@ -58,7 +68,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Render handles HTTPS
+      secure: false,
       httpOnly: true,
       maxAge: 1000 * 60 * 60
     }
