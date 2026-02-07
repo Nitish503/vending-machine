@@ -449,6 +449,60 @@ app.post("/api/admin/reset-password/:id", requireAdmin, async (req, res) => {
 });
 
 // ==========================
+// ADMIN REPLY TO MESSAGE
+// ==========================
+app.post("/api/messages/reply/:id", requireAdmin, async (req, res) => {
+  const { reply } = req.body;
+  const { id } = req.params;
+
+  if (!reply) {
+    return res.status(400).json({ error: "Reply required" });
+  }
+
+  await pool.query(
+    `UPDATE messages
+     SET admin_reply = $1,
+         replied_at = NOW()
+     WHERE id = $2`,
+    [reply, id]
+  );
+
+  res.json({ success: true });
+});
+// ==========================
+// CUSTOMER VIEW REPLIES
+// ==========================
+app.get("/api/messages/my", async (req, res) => {
+  const { mobile } = req.query;
+
+  if (!mobile) {
+    return res.status(400).json({ error: "Mobile required" });
+  }
+
+  // check if registered
+  const customer = await pool.query(
+    "SELECT id FROM customers WHERE mobile=$1",
+    [mobile]
+  );
+
+  if (!customer.rows.length) {
+    return res.status(403).json({
+      error: "Please register first"
+    });
+  }
+
+  const messages = await pool.query(
+    `SELECT message, admin_reply, created_at
+     FROM messages
+     WHERE phone=$1
+     ORDER BY created_at DESC`,
+    [mobile]
+  );
+
+  res.json(messages.rows);
+});
+
+// ==========================
 // SERVER
 // ==========================
 const PORT = process.env.PORT || 10000;

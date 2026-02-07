@@ -188,6 +188,20 @@
         <button class="btn btn-primary w-100">
           📤 Send Message
         </button>
+        <hr>
+<h4>View Admin Reply</h4>
+
+<form onsubmit="loadReplies(event)">
+  <input
+    type="text"
+    id="replyMobile"
+    placeholder="Registered mobile number"
+    required
+  />
+  <button>View Replies</button>
+</form>
+
+<div id="replyBox"></div>
       </form>
 
     </div>
@@ -353,6 +367,29 @@
       console.error(err);
     }
   }
+  async function loadReplies(e) {
+  e.preventDefault();
+
+  const mobile = document.getElementById("replyMobile").value;
+  const box = document.getElementById("replyBox");
+
+  const res = await fetch(`/api/messages/my?mobile=${mobile}`);
+  const data = await res.json();
+
+  if (!res.ok) {
+    box.innerHTML = data.error;
+    return;
+  }
+
+  box.innerHTML = "";
+  data.forEach(m => {
+    box.innerHTML += `
+      <p><b>Your message:</b> ${m.message}</p>
+      <p><b>Admin reply:</b> ${m.admin_reply || "Pending"}</p>
+      <hr>
+    `;
+  });
+}
 </script>
 
 

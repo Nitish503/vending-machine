@@ -238,6 +238,13 @@
           <td>${m.phone || "N/A"}</td>
           <td>${m.message}</td>
           <td>${new Date(m.created_at).toLocaleString()}</td>
+          <td>${m.admin_reply || "Pending"}</td>
+          <td>
+    <button onclick="replyMessage(${m.id})"
+      class="btn btn-sm btn-primary">
+      Reply
+    </button>
+  </td>
           <td>
             <button class="btn btn-sm btn-danger" onclick="deleteMessage(${m.id})">Delete</button>
           </td>
@@ -267,6 +274,19 @@
       alert("Logout failed");
     }
   }
+  async function replyMessage(id) {
+  const reply = prompt("Type reply:");
+  if (!reply) return;
+
+  await fetch(`/api/messages/reply/${id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reply })
+  });
+
+  alert("Reply sent");
+  loadMessages();
+}
 
   // INITIAL LOAD
   loadVisits();
