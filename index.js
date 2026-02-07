@@ -218,8 +218,26 @@ app.post("/admin-login", async (req, res) => {
     return res.status(401).send("Invalid credentials");
   }
 
+  // ✅ RESET RATE LIMIT AFTER SUCCESS
+  await redisClient.del(`rl:admin:${ip}`);
+
   req.session.admin = true;
   res.redirect("/admin");
+});
+
+// ==========================
+// ADMIN LOGOUT
+// ==========================
+app.post("/admin-logout", requireAdmin, (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).json({ error: "Logout failed" });
+    }
+
+    res.clearCookie("connect.sid");
+    res.json({ success: true });
+  });
 });
 
 // ==========================
@@ -299,7 +317,8 @@ app.post("/api/customer-login", async (req, res) => {
   }
 
   req.session.customerId = customer.id;
-  res.json({ success: true });
+await redisClient.del(`rl:customer:${req.ip}`);
+res.json({ success: true });
 });
 
 // ==========================

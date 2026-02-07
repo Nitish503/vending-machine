@@ -21,9 +21,14 @@
 <nav class="navbar navbar-dark px-3">
   <span class="navbar-brand fw-bold">Admin Dashboard</span>
   <a href="/" class="btn btn-light btn-sm">Home</a>
+  <button class="btn btn-danger btn-sm" onclick="adminLogout()">
+  Logout
+</button>
 </nav>
 
 <div class="container py-4">
+
+
 
   <!-- VISITORS -->
   <div class="card mb-4">
@@ -251,6 +256,16 @@
     if (!confirm("Reset password for this customer?")) return;
     await fetch(`/api/admin/reset-password/${id}`, { method: "POST" });
     loadCustomers();
+  }
+
+  async function adminLogout() {
+    const res = await fetch("/admin-logout", { method: "POST" });
+
+    if (res.ok) {
+      window.location.href = "/admin-login";
+    } else {
+      alert("Logout failed");
+    }
   }
 
   // INITIAL LOAD
