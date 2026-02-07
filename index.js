@@ -8,8 +8,8 @@ const { Pool } = require("pg");
 const path = require("path");
 require("dotenv").config();
 
-// Redis
-const RedisStore = require("connect-redis").default;
+// ✅ CORRECT for connect-redis v9
+const { RedisStore } = require("connect-redis");
 const { createClient } = require("redis");
 
 const app = express();
@@ -30,24 +30,13 @@ const redisClient = createClient({
   url: process.env.REDIS_URL
 });
 
-redisClient.on("error", err =>
-  console.error("❌ Redis Error:", err)
-);
+redisClient.on("error", err => {
+  console.error("❌ Redis error:", err);
+});
 
-redisClient.connect();
-
-// ==========================
-// RATE LIMIT HELPER (REDIS)
-// ==========================
-async function rateLimit({ key, limit, windowSec }) {
-  const count = await redisClient.incr(key);
-
-  if (count === 1) {
-    await redisClient.expire(key, windowSec);
-  }
-
-  return count <= limit;
-}
+redisClient.connect().then(() => {
+  console.log("✅ Redis connected");
+});
 
 // ==========================
 // MIDDLEWARE
@@ -61,7 +50,10 @@ app.use(express.static("public"));
 // ==========================
 app.use(
   session({
-    store: new RedisStore({ client: redisClient }),
+    store: new RedisStore({
+      client: redisClient,
+      prefix: "vending:sess:"
+    }),
     secret: process.env.SESSION_SECRET || "vending_secret",
     resave: false,
     saveUninitialized: false,
@@ -89,7 +81,6 @@ function requireCustomer(req, res, next) {
   }
   next();
 }
-
 // ==========================
 // VISITOR TRACKING
 // ==========================
