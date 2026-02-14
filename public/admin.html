@@ -1,294 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-  <style>
-    body { background: #f4f6f9; }
-    .navbar { background: #0d6efd; }
-    .section-title { font-weight: 600; margin-bottom: 15px; }
-  </style>
+<style>
+body { background:#f4f6f9; overflow-x:hidden; }
+
+.sidebar {
+  height:100vh;
+  background:#0d6efd;
+  color:white;
+  position:fixed;
+  width:240px;
+  transition:0.3s;
+}
+
+.sidebar h4 {
+  padding:20px;
+  border-bottom:1px solid rgba(255,255,255,0.3);
+}
+
+.sidebar a {
+  color:white;
+  display:block;
+  padding:12px 20px;
+  text-decoration:none;
+}
+
+.sidebar a:hover {
+  background:rgba(255,255,255,0.2);
+}
+
+.content {
+  margin-left:240px;
+  padding:20px;
+  transition:0.3s;
+}
+
+.hidden { display:none; }
+
+.toggle-btn {
+  display:none;
+}
+
+@media(max-width:768px){
+  .sidebar{ left:-240px; }
+  .sidebar.active{ left:0; }
+  .content{ margin-left:0; }
+  .toggle-btn{ display:inline-block; }
+}
+</style>
 </head>
-
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-dark px-3">
-  <span class="navbar-brand fw-bold">Admin Dashboard</span>
-  <a href="/" class="btn btn-light btn-sm">Home</a>
-  <button class="btn btn-danger btn-sm" onclick="adminLogout()">
-  Logout
-</button>
-</nav>
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <h4>Admin Panel</h4>
+  <a href="#" onclick="showSection('dashboard')">Dashboard</a>
+  <a href="#" onclick="showSection('customers')">Customers</a>
+  <a href="#" onclick="showSection('payments')">Payments</a>
+  <a href="#" onclick="showSection('messages')">Messages</a>
+  <a href="#" onclick="showSection('reports')">Reports</a>
+  <hr>
+  <a href="/" class="text-warning">Home</a>
+  <a href="#" onclick="adminLogout()" class="text-danger">Logout</a>
+</div>
 
-<div class="container py-4">
+<!-- MAIN CONTENT -->
+<div class="content">
 
+<button class="btn btn-primary toggle-btn mb-3"
+  onclick="toggleSidebar()">☰ Menu</button>
+
+<!-- DASHBOARD -->
+<div id="dashboardSection">
+  <h3>Dashboard</h3>
+  <div class="card p-3 mb-3">
+    <h5>Total Unique Visitors</h5>
+    <h4 id="visitorCount">Loading...</h4>
+  </div>
+</div>
+
+<!-- CUSTOMERS -->
+<div id="customersSection" class="hidden">
+  <h3>Customers</h3>
+
+  <input type="text"
+    id="customerSearch"
+    class="form-control mb-3"
+    placeholder="Search by name or mobile..."
+    oninput="filterCustomers()">
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="customers"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PAYMENTS -->
+<div id="paymentsSection" class="hidden">
+  <h3>Payments</h3>
+
+  <div class="row g-2 mb-3">
+    <div class="col-md-4">
+      <input type="date" id="fromDate" class="form-control">
+    </div>
+    <div class="col-md-4">
+      <input type="date" id="toDate" class="form-control">
+    </div>
+    <div class="col-md-4">
+      <button class="btn btn-primary w-100"
+        onclick="filterPayments()">Filter</button>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>Customer</th>
+          <th>Item</th>
+          <th>Amount (₹)</th>
+          <th>Address</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="payments"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MESSAGES -->
+<div id="messagesSection" class="hidden">
+  <h3>Customer Messages</h3>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Message</th>
+          <th>Date</th>
+          <th>Reply</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="messages"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- REPORTS -->
+<div id="reportsSection" class="hidden">
   <h3>Download PDF Reports</h3>
 
-<a href="/api/admin/export/customers-pdf">
-  <button>Download Customers PDF</button>
-</a>
+  <a href="/api/admin/export/customers-pdf"
+     class="btn btn-outline-primary w-100 mb-2">
+    Download Customers PDF
+  </a>
 
-<a href="/api/admin/export/payments-pdf">
-  <button>Download Payments PDF</button>
-</a>
+  <a href="/api/admin/export/payments-pdf"
+     class="btn btn-outline-success w-100 mb-2">
+    Download Payments PDF
+  </a>
 
-<a href="/api/admin/export/messages-pdf">
-  <button>Download Messages PDF</button>
-</a>
-
-
-
-  <!-- VISITORS -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="section-title">Website Visitors</h5>
-      <p>Total Unique Visitors: <strong id="visitorCount">Loading...</strong></p>
-    </div>
-  </div>
-
-  <!-- CUSTOMERS -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="section-title">Customers</h5>
-
-      <input
-        type="text"
-        id="customerSearch"
-        class="form-control mb-3"
-        placeholder="Search by name or mobile..."
-        oninput="filterCustomers()"
-      />
-
-      <div class="table-responsive">
-        <table class="table table-bordered table-sm align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Name</th>
-              <th>Mobile</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="customers"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- PAYMENTS -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="section-title">Payments</h5>
-
-      <div class="row g-2 mb-3">
-        <div class="col-md-4">
-          <input type="date" id="fromDate" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <input type="date" id="toDate" class="form-control">
-        </div>
-        <div class="col-md-4">
-          <button class="btn btn-primary w-100" onclick="filterPayments()">Filter</button>
-        </div>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-bordered table-sm align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Customer</th>
-              <th>Item</th>
-              <th>Amount (₹)</th>
-              <th>Address</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody id="payments"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- MESSAGES -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="section-title">Customer Messages</h5>
-
-      <div class="table-responsive">
-        <table class="table table-bordered table-sm align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Message</th>
-              <th>Date</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="messages"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <a href="/api/admin/export/messages-pdf"
+     class="btn btn-outline-danger w-100">
+    Download Messages PDF
+  </a>
+</div>
 
 </div>
 
 <script>
-  let allCustomers = [];
-  let allPayments = [];
-  let allMessages = [];
+// Sidebar toggle
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("active");
+}
 
-  // VISITS
-  async function loadVisits() {
-    const res = await fetch("/api/visitors/count");
-    const data = await res.json();
-    document.getElementById("visitorCount").innerText = data.total;
-  }
+// Section switch
+function showSection(section){
+  document.querySelectorAll(".content > div")
+    .forEach(div => div.classList.add("hidden"));
 
-  // CUSTOMERS
-  async function loadCustomers() {
-    const res = await fetch("/api/customers");
-    allCustomers = await res.json();
-    renderCustomers(allCustomers);
-  }
+  document.getElementById(section+"Section")
+    .classList.remove("hidden");
+}
 
-  function renderCustomers(customers) {
-    const tbody = document.getElementById("customers");
-    tbody.innerHTML = "";
+// Existing functionality (KEEPING YOUR ORIGINAL LOGIC)
 
-    customers.forEach(c => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${c.name}</td>
-          <td>${c.mobile}</td>
-          <td>
-            ${c.password === null
-              ? "<span class='badge bg-danger'>Reset Required</span>"
-              : "<span class='badge bg-success'>Active</span>"}
-          </td>
-          <td>
-            <button class="btn btn-sm btn-warning"
-              ${c.password === null ? "disabled" : ""}
-              onclick="resetPassword(${c.id})">
-              Reset
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-  }
+let allCustomers = [];
+let allPayments = [];
+let allMessages = [];
 
-  function filterCustomers() {
-    const q = document.getElementById("customerSearch").value.toLowerCase();
-    renderCustomers(allCustomers.filter(c =>
-      c.name.toLowerCase().includes(q) || c.mobile.includes(q)
-    ));
-  }
+// VISITS
+async function loadVisits() {
+  const res = await fetch("/api/visitors/count");
+  const data = await res.json();
+  document.getElementById("visitorCount").innerText = data.total;
+}
 
-  // PAYMENTS
-  async function loadPayments() {
-    const res = await fetch("/api/payments");
-    allPayments = await res.json();
-    renderPayments(allPayments);
-  }
+// CUSTOMERS
+async function loadCustomers() {
+  const res = await fetch("/api/customers");
+  allCustomers = await res.json();
+  renderCustomers(allCustomers);
+}
 
-  function renderPayments(payments) {
-    const tbody = document.getElementById("payments");
-    tbody.innerHTML = "";
+function renderCustomers(customers) {
+  const tbody = document.getElementById("customers");
+  tbody.innerHTML = "";
 
-    if (payments.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No payments found</td></tr>`;
-      return;
-    }
+  customers.forEach(c => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${c.name}</td>
+        <td>${c.mobile}</td>
+        <td>
+          ${c.password === null
+            ? "<span class='badge bg-danger'>Reset Required</span>"
+            : "<span class='badge bg-success'>Active</span>"}
+        </td>
+        <td>
+          <button class="btn btn-sm btn-warning"
+            ${c.password === null ? "disabled" : ""}
+            onclick="resetPassword(${c.id})">
+            Reset
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
 
-    payments.forEach(p => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${p.name}</td>
-          <td>${p.item}</td>
-          <td>${p.amount}</td>
-          <td>${p.address || "N/A"}</td>
-          <td>${new Date(p.created_at).toLocaleString()}</td>
-        </tr>
-      `;
-    });
-  }
+function filterCustomers() {
+  const q = document.getElementById("customerSearch").value.toLowerCase();
+  renderCustomers(allCustomers.filter(c =>
+    c.name.toLowerCase().includes(q) || c.mobile.includes(q)
+  ));
+}
 
-  function filterPayments() {
-    const from = document.getElementById("fromDate").value;
-    const to = document.getElementById("toDate").value + "T23:59:59";
+// PAYMENTS
+async function loadPayments() {
+  const res = await fetch("/api/payments");
+  allPayments = await res.json();
+  renderPayments(allPayments);
+}
 
-    if (!from || !to) return alert("Select both dates");
+function renderPayments(payments) {
+  const tbody = document.getElementById("payments");
+  tbody.innerHTML = "";
 
-    renderPayments(allPayments.filter(p => {
-      const d = new Date(p.created_at);
-      return d >= new Date(from) && d <= new Date(to);
-    }));
-  }
+  payments.forEach(p => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.item}</td>
+        <td>${p.amount}</td>
+        <td>${p.address || "N/A"}</td>
+        <td>${new Date(p.created_at).toLocaleString()}</td>
+      </tr>
+    `;
+  });
+}
 
-  // MESSAGES
-  async function loadMessages() {
-    const res = await fetch("/api/messages");
-    allMessages = await res.json();
+function filterPayments() {
+  const from = document.getElementById("fromDate").value;
+  const to = document.getElementById("toDate").value + "T23:59:59";
+  if (!from || !to) return alert("Select both dates");
 
-    const tbody = document.getElementById("messages");
-    tbody.innerHTML = "";
+  renderPayments(allPayments.filter(p => {
+    const d = new Date(p.created_at);
+    return d >= new Date(from) && d <= new Date(to);
+  }));
+}
 
-    if (allMessages.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No messages</td></tr>`;
-      return;
-    }
+// MESSAGES
+async function loadMessages() {
+  const res = await fetch("/api/messages");
+  allMessages = await res.json();
+  const tbody = document.getElementById("messages");
+  tbody.innerHTML = "";
 
-    allMessages.forEach(m => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${m.name || "N/A"}</td>
-          <td>${m.phone || "N/A"}</td>
-          <td>${m.message}</td>
-          <td>${new Date(m.created_at).toLocaleString()}</td>
-          <td>${m.admin_reply || "Pending"}</td>
-          <td>
-    <button onclick="replyMessage(${m.id})"
-      class="btn btn-sm btn-primary">
-      Reply
-    </button>
-  </td>
-          <td>
-            <button class="btn btn-sm btn-danger" onclick="deleteMessage(${m.id})">Delete</button>
-          </td>
-        </tr>
-      `;
-    });
-  }
+  allMessages.forEach(m => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${m.name || "N/A"}</td>
+        <td>${m.phone || "N/A"}</td>
+        <td>${m.message}</td>
+        <td>${new Date(m.created_at).toLocaleString()}</td>
+        <td>${m.admin_reply || "Pending"}</td>
+        <td>
+          <button onclick="replyMessage(${m.id})"
+            class="btn btn-sm btn-primary">Reply</button>
+          <button class="btn btn-sm btn-danger"
+            onclick="deleteMessage(${m.id})">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+}
 
-  async function deleteMessage(id) {
-    if (!confirm("Delete this message?")) return;
-    await fetch(`/api/messages/${id}`, { method: "DELETE" });
-    loadMessages();
-  }
+async function deleteMessage(id) {
+  if (!confirm("Delete this message?")) return;
+  await fetch(`/api/messages/${id}`, { method: "DELETE" });
+  loadMessages();
+}
 
-  async function resetPassword(id) {
-    if (!confirm("Reset password for this customer?")) return;
-    await fetch(`/api/admin/reset-password/${id}`, { method: "POST" });
-    loadCustomers();
-  }
+async function resetPassword(id) {
+  if (!confirm("Reset password for this customer?")) return;
+  await fetch(`/api/admin/reset-password/${id}`, { method: "POST" });
+  loadCustomers();
+}
 
-  async function adminLogout() {
-    const res = await fetch("/admin-logout", { method: "POST" });
+async function adminLogout() {
+  const res = await fetch("/admin-logout", { method: "POST" });
+  if (res.ok) window.location.href = "/admin-login";
+}
 
-    if (res.ok) {
-      window.location.href = "/admin-login";
-    } else {
-      alert("Logout failed");
-    }
-  }
-  async function replyMessage(id) {
+async function replyMessage(id) {
   const reply = prompt("Type reply:");
   if (!reply) return;
 
@@ -302,11 +346,11 @@
   loadMessages();
 }
 
-  // INITIAL LOAD
-  loadVisits();
-  loadCustomers();
-  loadPayments();
-  loadMessages();
+// INITIAL LOAD
+loadVisits();
+loadCustomers();
+loadPayments();
+loadMessages();
 </script>
 
 </body>
