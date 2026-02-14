@@ -141,12 +141,14 @@ async function initDB() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS messages (
-      id SERIAL PRIMARY KEY,
-      name TEXT,
-      phone TEXT,
-      message TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+  id SERIAL PRIMARY KEY,
+  name TEXT,
+  phone TEXT,
+  message TEXT NOT NULL,
+  admin_reply TEXT,
+  replied_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
   `);
 
   await pool.query(`
