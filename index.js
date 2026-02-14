@@ -1,6 +1,7 @@
 // ==========================
 // BASIC SETUP
 // ==========================
+const PDFDocument = require("pdfkit");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const session = require("express-session");
@@ -447,6 +448,101 @@ app.post("/api/admin/reset-password/:id", requireAdmin, async (req, res) => {
     [req.params.id]
   );
   res.json({ success: true });
+});
+
+//===========================
+// EXPORT CUSTOMERS PDF
+//===========================
+app.get("/api/admin/export/customers-pdf", requireAdmin, async (req, res) => {
+  const result = await pool.query(
+    "SELECT id,name,mobile,created_at FROM customers ORDER BY id DESC"
+  );
+
+  const doc = new PDFDocument({ margin: 30 });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=customers.pdf");
+
+  doc.pipe(res);
+
+  doc.fontSize(18).text("Customers Report", { align: "center" });
+  doc.moveDown();
+
+  result.rows.forEach(c => {
+    doc
+      .fontSize(12)
+      .text(`ID: ${c.id}`)
+      .text(`Name: ${c.name}`)
+      .text(`Mobile: ${c.mobile}`)
+      .text(`Created: ${c.created_at}`)
+      .moveDown();
+  });
+
+  doc.end();
+});
+
+//===========================
+// EXPORT PAYMENTS PDF
+//===========================
+app.get("/api/admin/export/payments-pdf", requireAdmin, async (req, res) => {
+  const result = await pool.query(`
+    SELECT c.name, p.item, p.amount, p.address, p.created_at
+    FROM payments p
+    JOIN customers c ON p.customer_id = c.id
+    ORDER BY p.id DESC
+  `);
+
+  const doc = new PDFDocument({ margin: 30 });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=payments.pdf");
+
+  doc.pipe(res);
+
+  doc.fontSize(18).text("Payments Report", { align: "center" });
+  doc.moveDown();
+
+  result.rows.forEach(p => {
+    doc
+      .fontSize(12)
+      .text(`Customer: ${p.name}`)
+      .text(`Item: ${p.item}`)
+      .text(`Amount: ₹${p.amount}`)
+      .text(`Address: ${p.address}`)
+      .text(`Date: ${p.created_at}`)
+      .moveDown();
+  });
+
+  doc.end();
+});
+
+//===========================
+// EXPORT MESSAGES PDF
+//===========================
+app.get("/api/admin/export/messages-pdf", requireAdmin, async (req, res) => {
+  const result = await pool.query(
+    "SELECT name, phone, message, admin_reply, created_at FROM messages ORDER BY id DESC"
+  );
+
+  const doc = new PDFDocument({ margin: 30 });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=messages.pdf");
+
+  doc.pipe(res);
+
+  doc.fontSize(18).text("Messages Report", { align: "center" });
+  doc.moveDown();
+
+  result.rows.forEach(m => {
+    doc
+      .fontSize(12)
+      .text(`Name: ${m.name}`)
+      .text(`Phone: ${m.phone}`)
+      .text(`Message: ${m.message}`)
+      .text(`Reply: ${m.admin_reply || "No reply"}`)
+      .text(`Date: ${m.created_at}`)
+      .moveDown();
+  });
+
+  doc.end();
 });
 
 // ==========================
