@@ -10,18 +10,18 @@
 <style>
 body { background:#f4f6f9; overflow-x:hidden; }
 
+/* Sidebar */
 .sidebar {
   height:100vh;
   background:#0d6efd;
   color:white;
   position:fixed;
   width:240px;
-  transition:0.3s;
-}
-
-.sidebar h4 {
-  padding:20px;
-  border-bottom:1px solid rgba(255,255,255,0.3);
+  left:0;
+  top:0;
+  transition:0.3s ease;
+  z-index:1000;
+  overflow-y:auto;
 }
 
 .sidebar a {
@@ -35,36 +35,56 @@ body { background:#f4f6f9; overflow-x:hidden; }
   background:rgba(255,255,255,0.2);
 }
 
+/* Overlay */
+.overlay {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.4);
+  display:none;
+  z-index:900;
+}
+
+/* Content */
 .content {
   margin-left:240px;
   padding:20px;
-  transition:0.3s;
+  transition:0.3s ease;
 }
 
 .hidden { display:none; }
 
-.toggle-btn {
-  display:none;
-}
-
+/* Mobile */
 @media(max-width:768px){
-  .sidebar{ left:-240px; }
-  .sidebar.active{ left:0; }
-  .content{ margin-left:0; }
-  .toggle-btn{ display:inline-block; }
+  .sidebar{
+    left:-240px;
+  }
+  .sidebar.active{
+    left:0;
+  }
+  .content{
+    margin-left:0;
+  }
 }
 </style>
 </head>
 <body>
 
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
-  <h4>Admin Panel</h4>
+  <h4 class="p-3 border-bottom">Admin Panel</h4>
+
   <a href="#" onclick="showSection('dashboard')">Dashboard</a>
   <a href="#" onclick="showSection('customers')">Customers</a>
   <a href="#" onclick="showSection('payments')">Payments</a>
   <a href="#" onclick="showSection('messages')">Messages</a>
   <a href="#" onclick="showSection('reports')">Reports</a>
+
   <hr>
   <a href="/" class="text-warning">Home</a>
   <a href="#" onclick="adminLogout()" class="text-danger">Logout</a>
@@ -73,11 +93,11 @@ body { background:#f4f6f9; overflow-x:hidden; }
 <!-- MAIN CONTENT -->
 <div class="content">
 
-<button class="btn btn-primary toggle-btn mb-3"
+<button class="btn btn-primary mb-3 d-md-none"
   onclick="toggleSidebar()">☰ Menu</button>
 
 <!-- DASHBOARD -->
-<div id="dashboardSection">
+<div id="dashboardSection" class="section">
   <h3>Dashboard</h3>
   <div class="card p-3 mb-3">
     <h5>Total Unique Visitors</h5>
@@ -86,13 +106,13 @@ body { background:#f4f6f9; overflow-x:hidden; }
 </div>
 
 <!-- CUSTOMERS -->
-<div id="customersSection" class="hidden">
+<div id="customersSection" class="section hidden">
   <h3>Customers</h3>
 
   <input type="text"
     id="customerSearch"
     class="form-control mb-3"
-    placeholder="Search by name or mobile..."
+    placeholder="Search..."
     oninput="filterCustomers()">
 
   <div class="table-responsive">
@@ -111,7 +131,7 @@ body { background:#f4f6f9; overflow-x:hidden; }
 </div>
 
 <!-- PAYMENTS -->
-<div id="paymentsSection" class="hidden">
+<div id="paymentsSection" class="section hidden">
   <h3>Payments</h3>
 
   <div class="row g-2 mb-3">
@@ -133,7 +153,7 @@ body { background:#f4f6f9; overflow-x:hidden; }
         <tr>
           <th>Customer</th>
           <th>Item</th>
-          <th>Amount (₹)</th>
+          <th>Amount</th>
           <th>Address</th>
           <th>Date</th>
         </tr>
@@ -144,9 +164,8 @@ body { background:#f4f6f9; overflow-x:hidden; }
 </div>
 
 <!-- MESSAGES -->
-<div id="messagesSection" class="hidden">
-  <h3>Customer Messages</h3>
-
+<div id="messagesSection" class="section hidden">
+  <h3>Messages</h3>
   <div class="table-responsive">
     <table class="table table-bordered table-sm">
       <thead class="table-light">
@@ -165,7 +184,7 @@ body { background:#f4f6f9; overflow-x:hidden; }
 </div>
 
 <!-- REPORTS -->
-<div id="reportsSection" class="hidden">
+<div id="reportsSection" class="section hidden">
   <h3>Download PDF Reports</h3>
 
   <a href="/api/admin/export/customers-pdf"
@@ -187,152 +206,188 @@ body { background:#f4f6f9; overflow-x:hidden; }
 </div>
 
 <script>
-// Sidebar toggle
+
+// Toggle Sidebar
 function toggleSidebar(){
-  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("sidebar").classList.add("active");
+  document.getElementById("overlay").style.display="block";
 }
 
-// Section switch
+// Close Sidebar
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("active");
+  document.getElementById("overlay").style.display="none";
+}
+
+// Switch Sections
 function showSection(section){
-  document.querySelectorAll(".content > div")
+
+  document.querySelectorAll(".section")
     .forEach(div => div.classList.add("hidden"));
 
   document.getElementById(section+"Section")
     .classList.remove("hidden");
+
+  // Auto close on mobile
+  if(window.innerWidth <= 768){
+    closeSidebar();
+  }
 }
 
-// Existing functionality (KEEPING YOUR ORIGINAL LOGIC)
+</script>
 
-let allCustomers = [];
-let allPayments = [];
-let allMessages = [];
+<!-- KEEP YOUR EXISTING DATA FUNCTIONS BELOW -->
+<script>
 
-// VISITS
-async function loadVisits() {
-  const res = await fetch("/api/visitors/count");
-  const data = await res.json();
-  document.getElementById("visitorCount").innerText = data.total;
-}
+  let allCustomers = [];
+  let allPayments = [];
+  let allMessages = [];
 
-// CUSTOMERS
-async function loadCustomers() {
-  const res = await fetch("/api/customers");
-  allCustomers = await res.json();
-  renderCustomers(allCustomers);
-}
+  // VISITS
+  async function loadVisits() {
+    const res = await fetch("/api/visitors/count");
+    const data = await res.json();
+    document.getElementById("visitorCount").innerText = data.total;
+  }
 
-function renderCustomers(customers) {
-  const tbody = document.getElementById("customers");
-  tbody.innerHTML = "";
+  // CUSTOMERS
+  async function loadCustomers() {
+    const res = await fetch("/api/customers");
+    allCustomers = await res.json();
+    renderCustomers(allCustomers);
+  }
 
-  customers.forEach(c => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${c.name}</td>
-        <td>${c.mobile}</td>
-        <td>
-          ${c.password === null
-            ? "<span class='badge bg-danger'>Reset Required</span>"
-            : "<span class='badge bg-success'>Active</span>"}
-        </td>
-        <td>
-          <button class="btn btn-sm btn-warning"
-            ${c.password === null ? "disabled" : ""}
-            onclick="resetPassword(${c.id})">
-            Reset
-          </button>
-        </td>
-      </tr>
-    `;
-  });
-}
+  function renderCustomers(customers) {
+    const tbody = document.getElementById("customers");
+    tbody.innerHTML = "";
 
-function filterCustomers() {
-  const q = document.getElementById("customerSearch").value.toLowerCase();
-  renderCustomers(allCustomers.filter(c =>
-    c.name.toLowerCase().includes(q) || c.mobile.includes(q)
-  ));
-}
+    customers.forEach(c => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${c.name}</td>
+          <td>${c.mobile}</td>
+          <td>
+            ${c.password === null
+              ? "<span class='badge bg-danger'>Reset Required</span>"
+              : "<span class='badge bg-success'>Active</span>"}
+          </td>
+          <td>
+            <button class="btn btn-sm btn-warning"
+              ${c.password === null ? "disabled" : ""}
+              onclick="resetPassword(${c.id})">
+              Reset
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+  }
 
-// PAYMENTS
-async function loadPayments() {
-  const res = await fetch("/api/payments");
-  allPayments = await res.json();
-  renderPayments(allPayments);
-}
+  function filterCustomers() {
+    const q = document.getElementById("customerSearch").value.toLowerCase();
+    renderCustomers(allCustomers.filter(c =>
+      c.name.toLowerCase().includes(q) || c.mobile.includes(q)
+    ));
+  }
 
-function renderPayments(payments) {
-  const tbody = document.getElementById("payments");
-  tbody.innerHTML = "";
+  // PAYMENTS
+  async function loadPayments() {
+    const res = await fetch("/api/payments");
+    allPayments = await res.json();
+    renderPayments(allPayments);
+  }
 
-  payments.forEach(p => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.item}</td>
-        <td>${p.amount}</td>
-        <td>${p.address || "N/A"}</td>
-        <td>${new Date(p.created_at).toLocaleString()}</td>
-      </tr>
-    `;
-  });
-}
+  function renderPayments(payments) {
+    const tbody = document.getElementById("payments");
+    tbody.innerHTML = "";
 
-function filterPayments() {
-  const from = document.getElementById("fromDate").value;
-  const to = document.getElementById("toDate").value + "T23:59:59";
-  if (!from || !to) return alert("Select both dates");
+    if (payments.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No payments found</td></tr>`;
+      return;
+    }
 
-  renderPayments(allPayments.filter(p => {
-    const d = new Date(p.created_at);
-    return d >= new Date(from) && d <= new Date(to);
-  }));
-}
+    payments.forEach(p => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.name}</td>
+          <td>${p.item}</td>
+          <td>${p.amount}</td>
+          <td>${p.address || "N/A"}</td>
+          <td>${new Date(p.created_at).toLocaleString()}</td>
+        </tr>
+      `;
+    });
+  }
 
-// MESSAGES
-async function loadMessages() {
-  const res = await fetch("/api/messages");
-  allMessages = await res.json();
-  const tbody = document.getElementById("messages");
-  tbody.innerHTML = "";
+  function filterPayments() {
+    const from = document.getElementById("fromDate").value;
+    const to = document.getElementById("toDate").value + "T23:59:59";
 
-  allMessages.forEach(m => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${m.name || "N/A"}</td>
-        <td>${m.phone || "N/A"}</td>
-        <td>${m.message}</td>
-        <td>${new Date(m.created_at).toLocaleString()}</td>
-        <td>${m.admin_reply || "Pending"}</td>
-        <td>
-          <button onclick="replyMessage(${m.id})"
-            class="btn btn-sm btn-primary">Reply</button>
-          <button class="btn btn-sm btn-danger"
-            onclick="deleteMessage(${m.id})">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
-}
+    if (!from || !to) return alert("Select both dates");
 
-async function deleteMessage(id) {
-  if (!confirm("Delete this message?")) return;
-  await fetch(`/api/messages/${id}`, { method: "DELETE" });
-  loadMessages();
-}
+    renderPayments(allPayments.filter(p => {
+      const d = new Date(p.created_at);
+      return d >= new Date(from) && d <= new Date(to);
+    }));
+  }
 
-async function resetPassword(id) {
-  if (!confirm("Reset password for this customer?")) return;
-  await fetch(`/api/admin/reset-password/${id}`, { method: "POST" });
-  loadCustomers();
-}
+  // MESSAGES
+  async function loadMessages() {
+    const res = await fetch("/api/messages");
+    allMessages = await res.json();
 
-async function adminLogout() {
-  const res = await fetch("/admin-logout", { method: "POST" });
-  if (res.ok) window.location.href = "/admin-login";
-}
+    const tbody = document.getElementById("messages");
+    tbody.innerHTML = "";
 
-async function replyMessage(id) {
+    if (allMessages.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No messages</td></tr>`;
+      return;
+    }
+
+    allMessages.forEach(m => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${m.name || "N/A"}</td>
+          <td>${m.phone || "N/A"}</td>
+          <td>${m.message}</td>
+          <td>${new Date(m.created_at).toLocaleString()}</td>
+          <td>${m.admin_reply || "Pending"}</td>
+          <td>
+    <button onclick="replyMessage(${m.id})"
+      class="btn btn-sm btn-primary">
+      Reply
+    </button>
+  </td>
+          <td>
+            <button class="btn btn-sm btn-danger" onclick="deleteMessage(${m.id})">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  async function deleteMessage(id) {
+    if (!confirm("Delete this message?")) return;
+    await fetch(`/api/messages/${id}`, { method: "DELETE" });
+    loadMessages();
+  }
+
+  async function resetPassword(id) {
+    if (!confirm("Reset password for this customer?")) return;
+    await fetch(`/api/admin/reset-password/${id}`, { method: "POST" });
+    loadCustomers();
+  }
+
+  async function adminLogout() {
+    const res = await fetch("/admin-logout", { method: "POST" });
+
+    if (res.ok) {
+      window.location.href = "/admin-login";
+    } else {
+      alert("Logout failed");
+    }
+  }
+  async function replyMessage(id) {
   const reply = prompt("Type reply:");
   if (!reply) return;
 
@@ -346,11 +401,11 @@ async function replyMessage(id) {
   loadMessages();
 }
 
-// INITIAL LOAD
-loadVisits();
-loadCustomers();
-loadPayments();
-loadMessages();
+  // INITIAL LOAD
+  loadVisits();
+  loadCustomers();
+  loadPayments();
+  loadMessages();
 </script>
 
 </body>
