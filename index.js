@@ -383,7 +383,7 @@ app.post("/api/messages", async (req, res) => {
 
     const allowed = await rateLimit({
       key: rateKey,
-      limit: 100S,          // ⬅ max 5 messages
+      limit: 100,          // ⬅ max 5 messages
       windowSec: 600     // ⬅ per 10 minutes
     });
 
