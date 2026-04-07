@@ -1,0 +1,75 @@
+body {
+    margin: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Cake Image */
+.cake {
+    width: 260px;
+    border-radius: 20px;
+    animation: floatCake 3s ease-in-out infinite;
+    box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+}
+
+/* Floating animation */
+@keyframes floatCake {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0); }
+}
+
+/* Candle Flame */
+.flame {
+    width: 14px;
+    height: 14px;
+    background: orange;
+    border-radius: 50%;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: flicker 0.3s infinite alternate;
+}
+
+@keyframes flicker {
+    from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    to { transform: translate(-50%, -50%) scale(1.4); opacity: 0.7; }
+}
+
+/* Balloons */
+.balloon {
+    position: absolute;
+    bottom: -100px;
+    width: 40px;
+    height: 50px;
+    border-radius: 50%;
+    animation: float 6s infinite ease-in;
+}
+
+.balloon::after {
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 30px;
+    background: white;
+    top: 50px;
+    left: 50%;
+}
+
+/* Balloon animation */
+@keyframes float {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-120vh); }
+}
+
+/* Different balloons */
+.balloon:nth-child(1) { left: 10%; background: #ff6f91; }
+.balloon:nth-child(2) { left: 30%; background: #f9c74f; }
+.balloon:nth-child(3) { left: 50%; background: #90dbf4; }
+.balloon:nth-child(4) { left: 70%; background: #b5ead7; }
+.balloon:nth-child(5) { left: 90%; background: #ffb3c1; }
