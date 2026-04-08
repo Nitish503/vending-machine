@@ -39,7 +39,6 @@
 <div class="photo-section">
     <img src="/images/vending5.jpeg" class="photo">
 
-    <!-- Animated Text -->
     <h2 class="birthday-text">
         <span>🎉</span>
         <span>H</span><span>a</span><span>p</span><span>p</span><span>y</span>
@@ -78,8 +77,6 @@
 
 <script>
 function burstHearts() {
-    const container = document.getElementById("hearts-container");
-
     for (let i = 0; i < 40; i++) {
         const heart = document.createElement("div");
         heart.className = "burst-heart";
@@ -90,7 +87,7 @@ function burstHearts() {
         heart.style.setProperty("--x", (Math.random()*400-200)+"px");
         heart.style.setProperty("--y", (Math.random()*-300)+"px");
 
-        container.appendChild(heart);
+        document.body.appendChild(heart);
 
         setTimeout(() => heart.remove(), 1500);
     }
