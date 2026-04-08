@@ -2,14 +2,13 @@
 body {
     margin: 0;
     min-height: 100vh;
+    background: linear-gradient(135deg, #ffdde1, #ee9ca7, #fad0c4);
+    background-size: 300% 300%;
+    animation: gradientBG 10s ease infinite;
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
-
-    background: linear-gradient(270deg, #0f2027, #203a43, #2c5364);
-    background-size: 600% 600%;
-    animation: gradientBG 12s ease infinite;
 }
 
 @keyframes gradientBG {
@@ -22,7 +21,8 @@ body {
 .cake {
     width: 260px;
     border-radius: 20px;
-    animation: floatCake 3s infinite;
+    animation: floatCake 3s ease-in-out infinite;
+    box-shadow: 0 15px 25px rgba(0,0,0,0.3);
     cursor: pointer;
 }
 
@@ -49,65 +49,32 @@ body {
     width: 40px;
     height: 50px;
     border-radius: 50%;
-    animation: float 6s infinite;
+    animation: float 6s infinite ease-in;
 }
+
 @keyframes float {
     to { transform: translateY(-120vh); }
 }
+
 .balloon:nth-child(1){left:10%;background:#ff6f91;}
 .balloon:nth-child(2){left:30%;background:#f9c74f;}
 .balloon:nth-child(3){left:50%;background:#90dbf4;}
 .balloon:nth-child(4){left:70%;background:#b5ead7;}
 .balloon:nth-child(5){left:90%;background:#ffb3c1;}
 
-/* ===== GLITTER ===== */
-.glitter {
-    position: fixed;
-    width: 3px;
-    height: 3px;
+/* ===== SPARKLES ===== */
+.sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
     background: white;
     border-radius: 50%;
-    animation: sparkleMove 5s infinite;
-}
-@keyframes sparkleMove {
-    0%{transform:translateY(100vh);}
-    100%{transform:translateY(-10vh);}
+    box-shadow: 0 0 10px white;
+    animation: sparkle 2s infinite;
 }
 
-/* ===== CONFETTI ===== */
-.confetti {
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    top: 50%;
-    left: 50%;
-    animation: confettiBurst 2s forwards;
-}
-@keyframes confettiBurst {
-    to {
-        transform: translate(var(--x), var(--y));
-        opacity: 0;
-    }
-}
-
-/* ===== PHOTO ===== */
-.photo-section {
-    margin-top: 50px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-}
-.photo {
-    width: 340px;
-    max-width: 90%;
-    border-radius: 20px;
-    animation: zoom 3s infinite;
-}
-@keyframes zoom {
-    50% { transform: scale(1.08); }
-}
-.birthday-text {
-    color: white;
-    font-size: 28px;
+@keyframes sparkle {
+    50% { opacity: 1; transform: scale(1.2); }
 }
 
 /* ===== HEART BURST ===== */
@@ -117,6 +84,55 @@ body {
     height: 15px;
     background: red;
     transform: rotate(45deg);
+    animation: burst 1.5s forwards;
+}
+
+@keyframes burst {
+    to {
+        transform: translate(var(--x), var(--y)) scale(0.5) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+/* ===== PHOTO ===== */
+.photo-section {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.photo {
+    width: 340px;
+    max-width: 90%;
+    border-radius: 20px;
+    animation: zoom 3s infinite;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+}
+
+@keyframes zoom {
+    50% { transform: scale(1.08); }
+}
+
+.birthday-text {
+    margin-top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 10px #fff, 0 0 20px #ff6f91;
+}
+
+/* ===== BACKGROUND HEARTS ===== */
+.bg-heart {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,0,0,0.2);
+    transform: rotate(45deg);
+    animation: floatHeart 8s infinite linear;
+}
+
+@keyframes floatHeart {
+    0% { transform: translateY(100vh) rotate(45deg); }
+    100% { transform: translateY(-120vh) rotate(45deg); }
 }
 
 /* ===== REELS ===== */
@@ -124,19 +140,27 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    width: 90%;
+    margin: 30px auto;
 }
+
 .reel-item {
     max-width: 350px;
     margin: auto;
+    border-radius: 15px;
+    overflow: hidden;
 }
+
 .reel-thumb {
     width: 100%;
-    height: 300px;
+    height: 320px;
     object-fit: cover;
 }
 
-/* MOBILE */
-@media (max-width:600px){
-    .cake{width:200px;}
-    .photo{width:85%;}
+/* ===== MOBILE ===== */
+@media (max-width: 600px) {
+    .cake { width: 200px; }
+    .photo { width: 85%; }
+    .reel-thumb { height: 260px; }
+    .birthday-text { font-size: 24px; }
 }

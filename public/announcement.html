@@ -22,13 +22,6 @@
 <div class="bg-heart"></div>
 <div class="bg-heart"></div>
 
-<!-- Glitter -->
-<div class="glitter"></div>
-<div class="glitter"></div>
-<div class="glitter"></div>
-<div class="glitter"></div>
-<div class="glitter"></div>
-
 <!-- Cake -->
 <img src="/images/vending4.jpeg" class="cake" onclick="burstHearts()">
 
@@ -95,22 +88,6 @@ function burstHearts() {
     }
 }
 
-/* Confetti */
-function createConfetti() {
-    for (let i = 0; i < 25; i++) {
-        const conf = document.createElement("div");
-        conf.className = "confetti";
-
-        conf.style.setProperty("--x", (Math.random()*400-200)+"px");
-        conf.style.setProperty("--y", (Math.random()*-400)+"px");
-        conf.style.background = `hsl(${Math.random()*360},100%,50%)`;
-
-        document.body.appendChild(conf);
-
-        setTimeout(() => conf.remove(), 2000);
-    }
-}
-setInterval(createConfetti, 3000);
 </script>
 
 </body>
