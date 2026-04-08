@@ -6,7 +6,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    overflow-x: hidden; /* allow vertical scroll */
+    overflow-x: hidden;
 }
 
 /* ===== CAKE ===== */
@@ -122,25 +122,30 @@ body {
 
 /* ===== PHOTO SECTION ===== */
 .photo-section {
-    margin-top: 40px;
+    margin-top: 50px;
     text-align: center;
 }
 
 .photo {
-    width: 200px;
-    border-radius: 15px;
+    width: 340px;
+    max-width: 90%;
+    border-radius: 20px;
     animation: zoom 3s infinite;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
 }
 
 @keyframes zoom {
-    50% { transform: scale(1.1); }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 .birthday-text {
-    margin-top: 12px;
-    font-size: 26px;
+    margin-top: 15px;
+    font-size: 30px;
+    font-weight: bold;
     color: white;
-    text-shadow: 0 0 10px #fff, 0 0 20px #ff6f91;
+    text-shadow: 0 0 10px #fff, 0 0 25px #ff6f91;
 }
 
 /* ===== BACKGROUND HEARTS ===== */
@@ -172,7 +177,7 @@ body {
     100% { transform: translateY(-120vh) rotate(45deg); opacity: 0; }
 }
 
-/* ===== REELS (VERTICAL MOBILE FRIENDLY) ===== */
+/* ===== REELS ===== */
 .reel-box {
     display: flex;
     flex-direction: column;
@@ -212,10 +217,19 @@ body {
     opacity: 1;
 }
 
-/* ===== MOBILE FIX ===== */
+/* ===== MOBILE ===== */
 @media (max-width: 600px) {
     .cake { width: 200px; }
-    .photo { width: 150px; }
-    .reel-thumb { height: 280px; }
-    .birthday-text { font-size: 22px; }
+
+    .photo {
+        width: 85%;
+    }
+
+    .reel-thumb {
+        height: 260px;
+    }
+
+    .birthday-text {
+        font-size: 24px;
+    }
 }
