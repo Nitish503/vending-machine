@@ -6,9 +6,69 @@
 <title>Birthday 🎂</title>
 
 <link rel="stylesheet" href="announcement.css">
+
+<style>
+/* ===== LOCK SCREEN ===== */
+#lock-screen {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.lock-box {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.lock-box input {
+    padding: 10px;
+    width: 200px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.lock-box button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    background: #ff6f91;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.error {
+    color: red;
+    margin-top: 8px;
+}
+</style>
+
 </head>
 
 <body>
+
+<!-- 🔐 PASSWORD SCREEN -->
+<div id="lock-screen">
+    <div class="lock-box">
+        <h2>🔐 Enter Password</h2>
+        <input type="password" id="password" placeholder="Enter password">
+        <br>
+        <button onclick="checkPassword()">Unlock</button>
+        <div id="error" class="error"></div>
+    </div>
+</div>
+
+<!-- 🔓 MAIN CONTENT -->
+<div id="main-content" style="display:none;">
 
 <!-- Balloons -->
 <div class="balloon"></div>
@@ -23,7 +83,7 @@
 <div class="bg-heart"></div>
 
 <!-- Cake -->
-<img src="/images/vending4.jpeg" class="cake" onclick="burstHearts()">
+<img src="/images/vending4.jpeg" class="cake">
 
 <!-- Flame -->
 <div class="flame"></div>
@@ -54,17 +114,17 @@
 
     <div class="reel-box">
 
-        <a href="https://www.instagram.com/reel/DVG996_DLsr/?igsh=aTBoOGw2cmM3MXVy" target="_blank" class="reel-item">
+        <a href="https://www.instagram.com/reel/DVG996_DLsr/" target="_blank" class="reel-item">
             <img src="/images/vendingR1.jpeg" class="reel-thumb">
             <div class="like">❤️</div>
         </a>
 
-        <a href="https://www.instagram.com/reel/DV6Ro0_jFyL/?igsh=MThxb2w2bGdsaHZlaQ==" target="_blank" class="reel-item">
+        <a href="https://www.instagram.com/reel/DV6Ro0_jFyL/" target="_blank" class="reel-item">
             <img src="/images/vendingR2.jpeg" class="reel-thumb">
             <div class="like">❤️</div>
         </a>
 
-        <a href="https://www.instagram.com/reel/DVAtwQrgnEP/?igsh=MXFtNmdmc3I1ZTAzbw==" target="_blank" class="reel-item">
+        <a href="https://www.instagram.com/reel/DVAtwQrgnEP/" target="_blank" class="reel-item">
             <img src="/images/vendingR3.jpeg" class="reel-thumb">
             <div class="like">❤️</div>
         </a>
@@ -72,27 +132,55 @@
     </div>
 </div>
 
-<!-- Hearts container -->
-<div id="hearts-container"></div>
+</div>
 
+<!-- SCRIPT -->
 <script>
-function burstHearts() {
-    for (let i = 0; i < 40; i++) {
+const correctPassword = "2550";
+
+function checkPassword() {
+    const input = document.getElementById("password").value;
+
+    if (input === correctPassword) {
+        document.getElementById("lock-screen").style.display = "none";
+        document.getElementById("main-content").style.display = "block";
+
+        // 🎵 Play music after unlock
+        const music = document.getElementById("bg-music");
+        music.play();
+    } else {
+        document.getElementById("error").innerText = "Wrong password!";
+    }
+}
+
+/* 💖 TAP ANYWHERE HEART BURST */
+function burstHearts(x, y) {
+    for (let i = 0; i < 30; i++) {
         const heart = document.createElement("div");
         heart.className = "burst-heart";
 
-        heart.style.left = "50%";
-        heart.style.top = "50%";
+        heart.style.left = x + "px";
+        heart.style.top = y + "px";
 
-        heart.style.setProperty("--x", (Math.random()*400-200)+"px");
-        heart.style.setProperty("--y", (Math.random()*-300)+"px");
+        heart.style.setProperty("--x", (Math.random()*200-100)+"px");
+        heart.style.setProperty("--y", (Math.random()*-200)+"px");
 
         document.body.appendChild(heart);
 
         setTimeout(() => heart.remove(), 1500);
     }
 }
+
+document.addEventListener("click", function(e) {
+    // prevent hearts on lock screen
+    if (document.getElementById("main-content").style.display === "block") {
+        burstHearts(e.clientX, e.clientY);
+    }
+});
 </script>
+<audio id="bg-music" loop>
+    <source src="/music/birthday.mp3" type="audio/mpeg">
+</audio>
 
 </body>
 </html>
