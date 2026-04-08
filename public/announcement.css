@@ -136,3 +136,179 @@ body {
         opacity: 0;
     }
 }
+/* Layout vertical */
+body {
+    flex-direction: column;
+}
+
+/* Photo Section */
+.photo-section {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.photo {
+    width: 200px;
+    border-radius: 15px;
+    animation: zoom 3s ease-in-out infinite;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+@keyframes zoom {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Birthday text */
+.birthday-text {
+    margin-top: 12px;
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 10px #fff, 0 0 20px #ff6f91;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 10px #fff; }
+    to { text-shadow: 0 0 30px #ff6f91; }
+}
+
+/* BIG BACKGROUND HEARTS */
+.bg-heart {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 0, 0, 0.3);
+    transform: rotate(45deg);
+    animation: floatHeart 8s infinite linear;
+}
+
+.bg-heart::before,
+.bg-heart::after {
+    content: "";
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 0, 0, 0.3);
+    border-radius: 50%;
+}
+
+.bg-heart::before {
+    top: -20px;
+    left: 0;
+}
+
+.bg-heart::after {
+    left: -20px;
+    top: 0;
+}
+
+/* Animation */
+@keyframes floatHeart {
+    0% {
+        transform: translateY(100vh) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-120vh) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+/* Different positions */
+.bg-heart:nth-child(6) { left: 20%; animation-duration: 7s; }
+.bg-heart:nth-child(7) { left: 50%; animation-duration: 9s; }
+.bg-heart:nth-child(8) { left: 80%; animation-duration: 8s; }
+/* Layout vertical */
+body {
+    flex-direction: column;
+}
+
+/* Photo Section */
+.photo-section {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.photo {
+    width: 200px;
+    border-radius: 15px;
+    animation: zoom 3s ease-in-out infinite;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+@keyframes zoom {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Birthday text */
+.birthday-text {
+    margin-top: 12px;
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 10px #fff, 0 0 20px #ff6f91;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 10px #fff; }
+    to { text-shadow: 0 0 30px #ff6f91; }
+}
+
+/* BIG BACKGROUND HEARTS */
+.bg-heart {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 0, 0, 0.3);
+    transform: rotate(45deg);
+    animation: floatHeart 8s infinite linear;
+}
+
+.bg-heart::before,
+.bg-heart::after {
+    content: "";
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 0, 0, 0.3);
+    border-radius: 50%;
+}
+
+.bg-heart::before {
+    top: -20px;
+    left: 0;
+}
+
+.bg-heart::after {
+    left: -20px;
+    top: 0;
+}
+
+/* Animation */
+@keyframes floatHeart {
+    0% {
+        transform: translateY(100vh) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-120vh) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+/* Different positions */
+.bg-heart:nth-child(6) { left: 20%; animation-duration: 7s; }
+.bg-heart:nth-child(7) { left: 50%; animation-duration: 9s; }
+.bg-heart:nth-child(8) { left: 80%; animation-duration: 8s; }
