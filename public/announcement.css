@@ -8,12 +8,13 @@ body {
     overflow: hidden;
 }
 
-/* Cake Image */
+/* Cake */
 .cake {
     width: 260px;
     border-radius: 20px;
     animation: floatCake 3s ease-in-out infinite;
     box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+    cursor: pointer;
 }
 
 /* Floating animation */
@@ -23,7 +24,7 @@ body {
     100% { transform: translateY(0); }
 }
 
-/* Candle Flame */
+/* Flame */
 .flame {
     width: 14px;
     height: 14px;
@@ -61,58 +62,17 @@ body {
     left: 50%;
 }
 
-/* Balloon animation */
 @keyframes float {
     0% { transform: translateY(0); }
     100% { transform: translateY(-120vh); }
 }
 
-/* Different balloons */
 .balloon:nth-child(1) { left: 10%; background: #ff6f91; }
 .balloon:nth-child(2) { left: 30%; background: #f9c74f; }
 .balloon:nth-child(3) { left: 50%; background: #90dbf4; }
 .balloon:nth-child(4) { left: 70%; background: #b5ead7; }
 .balloon:nth-child(5) { left: 90%; background: #ffb3c1; }
-/* Heart Shape */
-.heart {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: red;
-    transform: rotate(45deg);
-    animation: floatHeart 7s infinite ease-in;
-}
 
-.heart::before,
-.heart::after {
-    content: "";
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: red;
-    border-radius: 50%;
-}
-
-.heart::before {
-    top: -10px;
-    left: 0;
-}
-
-.heart::after {
-    left: -10px;
-    top: 0;
-}
-
-/* Heart Animation */
-@keyframes floatHeart {
-    0% { transform: translateY(0) rotate(45deg); opacity: 1; }
-    100% { transform: translateY(-120vh) rotate(45deg); opacity: 0.7; }
-}
-
-/* Different heart positions */
-.heart:nth-child(6) { left: 20%; animation-duration: 6s; }
-.heart:nth-child(7) { left: 60%; animation-duration: 8s; }
-.heart:nth-child(8) { left: 80%; animation-duration: 7s; }
 /* Sparkles */
 .sparkle {
     position: absolute;
@@ -130,12 +90,11 @@ body {
     100% { transform: scale(0.5); opacity: 0; }
 }
 
-/* Positions around cake */
-.sparkle:nth-child(6) { top: 40%; left: 45%; }
-.sparkle:nth-child(7) { top: 50%; left: 55%; }
-.sparkle:nth-child(8) { top: 45%; left: 60%; }
-.sparkle:nth-child(9) { top: 55%; left: 40%; }
-.sparkle:nth-child(10){ top: 48%; left: 50%; }
+.sparkle:nth-child(7) { top: 40%; left: 45%; }
+.sparkle:nth-child(8) { top: 50%; left: 55%; }
+.sparkle:nth-child(9) { top: 45%; left: 60%; }
+.sparkle:nth-child(10){ top: 55%; left: 40%; }
+.sparkle:nth-child(11){ top: 48%; left: 50%; }
 
 /* Heart burst */
 .burst-heart {
@@ -167,7 +126,6 @@ body {
     top: 0;
 }
 
-/* Burst animation */
 @keyframes burst {
     0% {
         transform: translate(0,0) scale(1) rotate(45deg);

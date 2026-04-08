@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Birthday Cake 🎂</title>
 
-<link rel="stylesheet" href="announcement.css">
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -17,13 +17,6 @@
 <div class="balloon"></div>
 <div class="balloon"></div>
 
-<!-- Heart Balloons -->
-<div class="heart"></div>
-<div class="heart"></div>
-<div class="heart"></div>
-
-<!-- Cake Image -->
-<img src="/images/vending4.jpeg" alt="Cake" class="cake">
 <!-- Cake -->
 <img src="your-image.jpg" class="cake" onclick="burstHearts()">
 
@@ -48,11 +41,9 @@ function burstHearts() {
         const heart = document.createElement("div");
         heart.className = "burst-heart";
 
-        // center position
         heart.style.left = "50%";
         heart.style.top = "50%";
 
-        // wider spread
         heart.style.setProperty("--x", (Math.random() * 400 - 200) + "px");
         heart.style.setProperty("--y", (Math.random() * -300) + "px");
 
