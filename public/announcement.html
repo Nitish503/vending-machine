@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Birthday Cake 🎂</title>
+<title>Birthday 🎂</title>
 
 <link rel="stylesheet" href="announcement.css">
 </head>
@@ -17,10 +17,17 @@
 <div class="balloon"></div>
 <div class="balloon"></div>
 
-<!-- Big Background Hearts -->
+<!-- Background Hearts -->
 <div class="bg-heart"></div>
 <div class="bg-heart"></div>
 <div class="bg-heart"></div>
+
+<!-- Glitter -->
+<div class="glitter"></div>
+<div class="glitter"></div>
+<div class="glitter"></div>
+<div class="glitter"></div>
+<div class="glitter"></div>
 
 <!-- Cake -->
 <img src="/images/vending4.jpeg" class="cake" onclick="burstHearts()">
@@ -40,8 +47,10 @@
     <img src="/images/vending5.jpeg" class="photo">
     <h2 class="birthday-text">🎉 Happy Birthday 🎉</h2>
 </div>
+
+<!-- Reel Section -->
 <div class="reel-section">
-    <h2 class="reel-title">🎬 Reel for you</h2>
+    <h2 class="birthday-text">🎬 Reel for you</h2>
 
     <div class="reel-box">
 
@@ -51,12 +60,12 @@
         </a>
 
         <a href="https://www.instagram.com/reel/DV6Ro0_jFyL/?igsh=MThxb2w2bGdsaHZlaQ==" target="_blank" class="reel-item">
-            <img src="/images/vendingR2.jpeg" class="reel-thumb">
+            <img src="/images/vendingR2.jpeg">
             <div class="like">❤️</div>
         </a>
 
-        <a href="https://www.instagram.com/reel/DVAtwQrgnEP/?igsh=MXFtNmdmc3I1ZTAzbw==" target="_blank" class="reel-item">
-            <img src="/images/vendingR3.jpeg" class="reel-thumb">
+<a href="https://www.instagram.com/reel/DVAtwQrgnEP/?igsh=MXFtNmdmc3I1ZTAzbw==" target="_blank" class="reel-item">
+            <img src="/images/vendingR3.jpeg">
             <div class="like">❤️</div>
         </a>
 
@@ -77,16 +86,31 @@ function burstHearts() {
         heart.style.left = "50%";
         heart.style.top = "50%";
 
-        heart.style.setProperty("--x", (Math.random() * 400 - 200) + "px");
-        heart.style.setProperty("--y", (Math.random() * -300) + "px");
+        heart.style.setProperty("--x", (Math.random()*400-200)+"px");
+        heart.style.setProperty("--y", (Math.random()*-300)+"px");
 
         container.appendChild(heart);
 
-        setTimeout(() => {
-            heart.remove();
-        }, 1500);
+        setTimeout(() => heart.remove(), 1500);
     }
 }
+
+/* Confetti */
+function createConfetti() {
+    for (let i = 0; i < 25; i++) {
+        const conf = document.createElement("div");
+        conf.className = "confetti";
+
+        conf.style.setProperty("--x", (Math.random()*400-200)+"px");
+        conf.style.setProperty("--y", (Math.random()*-400)+"px");
+        conf.style.background = `hsl(${Math.random()*360},100%,50%)`;
+
+        document.body.appendChild(conf);
+
+        setTimeout(() => conf.remove(), 2000);
+    }
+}
+setInterval(createConfetti, 3000);
 </script>
 
 </body>

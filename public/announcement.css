@@ -2,26 +2,32 @@
 body {
     margin: 0;
     min-height: 100vh;
-    background: linear-gradient(135deg, #ffdde1, #ee9ca7);
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
+
+    background: linear-gradient(270deg, #0f2027, #203a43, #2c5364);
+    background-size: 600% 600%;
+    animation: gradientBG 12s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* ===== CAKE ===== */
 .cake {
     width: 260px;
     border-radius: 20px;
-    animation: floatCake 3s ease-in-out infinite;
-    box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+    animation: floatCake 3s infinite;
     cursor: pointer;
 }
 
 @keyframes floatCake {
-    0% { transform: translateY(0); }
     50% { transform: translateY(-15px); }
-    100% { transform: translateY(0); }
 }
 
 /* ===== FLAME ===== */
@@ -34,12 +40,6 @@ body {
     top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
-    animation: flicker 0.3s infinite alternate;
-}
-
-@keyframes flicker {
-    from { transform: translate(-50%, -50%) scale(1); }
-    to { transform: translate(-50%, -50%) scale(1.4); }
 }
 
 /* ===== BALLOONS ===== */
@@ -49,45 +49,65 @@ body {
     width: 40px;
     height: 50px;
     border-radius: 50%;
-    animation: float 6s infinite ease-in;
+    animation: float 6s infinite;
 }
-
-.balloon::after {
-    content: "";
-    position: absolute;
-    width: 2px;
-    height: 30px;
-    background: white;
-    top: 50px;
-    left: 50%;
-}
-
 @keyframes float {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-120vh); }
+    to { transform: translateY(-120vh); }
 }
+.balloon:nth-child(1){left:10%;background:#ff6f91;}
+.balloon:nth-child(2){left:30%;background:#f9c74f;}
+.balloon:nth-child(3){left:50%;background:#90dbf4;}
+.balloon:nth-child(4){left:70%;background:#b5ead7;}
+.balloon:nth-child(5){left:90%;background:#ffb3c1;}
 
-.balloon:nth-child(1) { left: 10%; background: #ff6f91; }
-.balloon:nth-child(2) { left: 30%; background: #f9c74f; }
-.balloon:nth-child(3) { left: 50%; background: #90dbf4; }
-.balloon:nth-child(4) { left: 70%; background: #b5ead7; }
-.balloon:nth-child(5) { left: 90%; background: #ffb3c1; }
-
-/* ===== SPARKLES ===== */
-.sparkle {
-    position: absolute;
-    width: 6px;
-    height: 6px;
+/* ===== GLITTER ===== */
+.glitter {
+    position: fixed;
+    width: 3px;
+    height: 3px;
     background: white;
     border-radius: 50%;
-    box-shadow: 0 0 10px white;
-    animation: sparkle 2s infinite ease-in-out;
+    animation: sparkleMove 5s infinite;
+}
+@keyframes sparkleMove {
+    0%{transform:translateY(100vh);}
+    100%{transform:translateY(-10vh);}
 }
 
-@keyframes sparkle {
-    0% { transform: scale(0.5); opacity: 0; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(0.5); opacity: 0; }
+/* ===== CONFETTI ===== */
+.confetti {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    top: 50%;
+    left: 50%;
+    animation: confettiBurst 2s forwards;
+}
+@keyframes confettiBurst {
+    to {
+        transform: translate(var(--x), var(--y));
+        opacity: 0;
+    }
+}
+
+/* ===== PHOTO ===== */
+.photo-section {
+    margin-top: 50px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+.photo {
+    width: 340px;
+    max-width: 90%;
+    border-radius: 20px;
+    animation: zoom 3s infinite;
+}
+@keyframes zoom {
+    50% { transform: scale(1.08); }
+}
+.birthday-text {
+    color: white;
+    font-size: 28px;
 }
 
 /* ===== HEART BURST ===== */
@@ -97,84 +117,6 @@ body {
     height: 15px;
     background: red;
     transform: rotate(45deg);
-    animation: burst 1.5s ease-out forwards;
-}
-
-.burst-heart::before,
-.burst-heart::after {
-    content: "";
-    position: absolute;
-    width: 15px;
-    height: 15px;
-    background: red;
-    border-radius: 50%;
-}
-
-.burst-heart::before { top: -7px; }
-.burst-heart::after { left: -7px; }
-
-@keyframes burst {
-    100% {
-        transform: translate(var(--x), var(--y)) scale(0.5) rotate(45deg);
-        opacity: 0;
-    }
-}
-
-/* ===== PHOTO SECTION ===== */
-.photo-section {
-    margin-top: 50px;
-    text-align: center;
-}
-
-.photo {
-    width: 340px;
-    max-width: 90%;
-    border-radius: 20px;
-    animation: zoom 3s infinite;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-}
-
-@keyframes zoom {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.08); }
-    100% { transform: scale(1); }
-}
-
-.birthday-text {
-    margin-top: 15px;
-    font-size: 30px;
-    font-weight: bold;
-    color: white;
-    text-shadow: 0 0 10px #fff, 0 0 25px #ff6f91;
-}
-
-/* ===== BACKGROUND HEARTS ===== */
-.bg-heart {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background: rgba(255,0,0,0.3);
-    transform: rotate(45deg);
-    animation: floatHeart 8s infinite linear;
-}
-
-.bg-heart::before,
-.bg-heart::after {
-    content: "";
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background: rgba(255,0,0,0.3);
-    border-radius: 50%;
-}
-
-.bg-heart::before { top: -20px; }
-.bg-heart::after { left: -20px; }
-
-@keyframes floatHeart {
-    0% { transform: translateY(100vh) rotate(45deg); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translateY(-120vh) rotate(45deg); opacity: 0; }
 }
 
 /* ===== REELS ===== */
@@ -182,54 +124,19 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 90%;
-    margin: 30px auto;
 }
-
 .reel-item {
-    position: relative;
-    width: 100%;
     max-width: 350px;
     margin: auto;
-    border-radius: 15px;
-    overflow: hidden;
 }
-
 .reel-thumb {
     width: 100%;
-    height: 350px;
+    height: 300px;
     object-fit: cover;
 }
 
-/* LIKE EFFECT */
-.like {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    font-size: 40px;
-    opacity: 0;
-    transition: 0.3s;
-}
-
-.reel-item:hover .like {
-    transform: translate(-50%, -50%) scale(1.5);
-    opacity: 1;
-}
-
-/* ===== MOBILE ===== */
-@media (max-width: 600px) {
-    .cake { width: 200px; }
-
-    .photo {
-        width: 85%;
-    }
-
-    .reel-thumb {
-        height: 260px;
-    }
-
-    .birthday-text {
-        font-size: 24px;
-    }
+/* MOBILE */
+@media (max-width:600px){
+    .cake{width:200px;}
+    .photo{width:85%;}
 }
