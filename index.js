@@ -461,6 +461,47 @@ async (req, res) => {
   res.json({ success: true });
 });
 
+app.put(
+  "/api/machines/:id",
+  requireAdmin,
+  async (req, res) => {
+
+    try{
+
+      const { name, location } = req.body;
+
+      if(!name){
+        return res.status(400).json({
+          error:"Machine name required"
+        });
+      }
+
+      await pool.query(
+        `UPDATE machines
+         SET name=$1,
+             location=$2
+         WHERE id=$3`,
+        [
+          name,
+          location,
+          req.params.id
+        ]
+      );
+
+      res.json({
+        success:true
+      });
+
+    }catch(err){
+
+      console.error(err);
+
+      res.status(500).json({
+        error:"Failed to update machine"
+      });
+    }
+});
+
 
 // ==========================
 // ADMIN APIs

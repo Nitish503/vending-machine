@@ -189,19 +189,22 @@ body { background:#f4f6f9; overflow-x:hidden; }
 <!-- MACHINES -->
 <div id="machinesSection" class="section hidden">
 
-  <h3>Machine Control</h3>
+  <h3 class="mb-4">Machine Control</h3>
 
   <div class="table-responsive">
 
-    <table class="table table-bordered">
+    <table class="table table-bordered align-middle">
 
       <thead class="table-light">
+
         <tr>
-          <th>Machine</th>
+          <th>Machine Name</th>
           <th>Location</th>
           <th>Status</th>
+          <th>Save</th>
           <th>Action</th>
         </tr>
+
       </thead>
 
       <tbody id="machinesTable"></tbody>
@@ -433,6 +436,7 @@ function showSection(section){
 async function loadMachines(){
 
   const res = await fetch("/api/machines");
+
   const machines = await res.json();
 
   const tbody =
@@ -446,11 +450,30 @@ async function loadMachines(){
       machine.status === "online";
 
     tbody.innerHTML += `
+
       <tr>
 
-        <td>${machine.name}</td>
+        <td>
 
-        <td>${machine.location}</td>
+          <input
+            type="text"
+            class="form-control"
+            id="name-${machine.id}"
+            value="${machine.name}"
+          >
+
+        </td>
+
+        <td>
+
+          <input
+            type="text"
+            class="form-control"
+            id="location-${machine.id}"
+            value="${machine.location || ""}"
+          >
+
+        </td>
 
         <td>
 
@@ -467,6 +490,19 @@ async function loadMachines(){
             }
 
           </span>
+
+        </td>
+
+        <td>
+
+          <button
+            class="btn btn-primary btn-sm"
+            onclick="saveMachine(${machine.id})"
+          >
+
+            Save
+
+          </button>
 
         </td>
 
@@ -517,6 +553,44 @@ async function updateMachineStatus(id, status){
   });
 
   loadMachines();
+}
+//SAVE MACHINE
+async function saveMachine(id){
+
+  const name =
+    document.getElementById(`name-${id}`).value;
+
+  const location =
+    document.getElementById(`location-${id}`).value;
+
+  const res = await fetch(
+    `/api/machines/${id}`,
+    {
+      method:"PUT",
+
+      headers:{
+        "Content-Type":"application/json"
+      },
+
+      body: JSON.stringify({
+        name,
+        location
+      })
+    }
+  );
+
+  const data = await res.json();
+
+  if(data.success){
+
+    alert("Machine updated");
+
+    loadMachines();
+
+  }else{
+
+    alert(data.error || "Update failed");
+  }
 }
 
   // INITIAL LOAD
