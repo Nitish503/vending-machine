@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Expense Tracker</title>
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet">
+
+<!-- CSS -->
+<link rel="stylesheet" href="/expenses.css">
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+
+  <div class="container-fluid">
+
+    <a class="navbar-brand fw-bold" href="/">
+      💰 Expense Tracker
+    </a>
+
+    <button class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav">
+
+      <span class="navbar-toggler-icon"></span>
+
+    </button>
+
+    <div class="collapse navbar-collapse"
+         id="navbarNav">
+
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item">
+          <a class="nav-link"
+             href="/">
+             🏠 Home
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link"
+             href="/machines.html">
+             🏪 Machines
+          </a>
+        </li>
+
+      </ul>
+
+    </div>
+
+  </div>
+
+</nav>
+
+<!-- PAGE -->
+<div class="container py-5">
+
+  <!-- TITLE -->
+  <div class="text-center mb-5">
+
+    <h2 class="fw-bold">
+      📊 Personal Expense Tracker
+    </h2>
+
+    <p class="text-muted">
+      Record and analyse your daily expenses
+    </p>
+
+  </div>
+
+  <!-- ADD EXPENSE -->
+  <div class="card expense-card mb-4">
+
+    <div class="card-body">
+
+      <h4 class="mb-4">
+        ➕ Add Expense
+      </h4>
+
+      <form id="expenseForm">
+
+        <div class="row g-3">
+
+          <!-- Amount -->
+          <div class="col-md-3">
+
+            <input
+              type="number"
+              step="0.01"
+              id="amount"
+              class="form-control"
+              placeholder="Amount"
+              required
+            >
+
+          </div>
+
+          <!-- Category -->
+          <div class="col-md-3">
+
+            <select
+              id="category"
+              class="form-select"
+              required>
+
+              <option value="">
+                Select Category
+              </option>
+
+              <option>Food</option>
+              <option>Travel</option>
+              <option>Shopping</option>
+              <option>Recharge</option>
+              <option>Bills</option>
+              <option>Education</option>
+              <option>Medical</option>
+              <option>Entertainment</option>
+              <option>Others</option>
+
+            </select>
+
+          </div>
+
+          <!-- Date -->
+          <div class="col-md-3">
+
+            <input
+              type="date"
+              id="expenseDate"
+              class="form-control"
+              required
+            >
+
+          </div>
+
+          <!-- Note -->
+          <div class="col-md-12">
+
+            <textarea
+              id="note"
+              class="form-control"
+              rows="3"
+              placeholder="Write purpose/note..."
+            ></textarea>
+
+          </div>
+
+          <!-- Submit -->
+          <div class="col-md-12">
+
+            <button
+              type="submit"
+              class="btn btn-primary w-100">
+
+              Save Expense
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="card expense-card mb-4">
+
+    <div class="card-body">
+
+      <h4 class="mb-4">
+        📈 Monthly Analysis
+      </h4>
+
+      <div id="summaryBox">
+
+        Loading analysis...
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- EXPENSE HISTORY -->
+  <div class="card expense-card">
+
+    <div class="card-body">
+
+      <h4 class="mb-4">
+        🧾 Expense History
+      </h4>
+
+      <div class="table-responsive">
+
+        <table class="table table-bordered">
+
+          <thead class="table-light">
+
+            <tr>
+              <th>Amount</th>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Note</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="expenseTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+// ADD EXPENSE
+document
+.getElementById("expenseForm")
+.addEventListener(
+  "submit",
+  async function(e){
+
+    e.preventDefault();
+
+    const amount =
+      document.getElementById("amount").value;
+
+    const category =
+      document.getElementById("category").value;
+
+    const expense_date =
+      document.getElementById("expenseDate").value;
+
+    const note =
+      document.getElementById("note").value;
+
+    const res = await fetch(
+      "/api/expenses",
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json"
+        },
+
+        body: JSON.stringify({
+          amount,
+          category,
+          expense_date,
+          note
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if(data.success){
+
+      alert("Expense saved");
+
+      document
+      .getElementById("expenseForm")
+      .reset();
+
+      loadExpenses();
+
+      loadSummary();
+
+    }else{
+
+      alert(data.error || "Failed");
+    }
+});
+
+// LOAD EXPENSES
+async function loadExpenses(){
+
+  const res =
+    await fetch("/api/expenses");
+
+  const expenses =
+    await res.json();
+
+  const tbody =
+    document.getElementById("expenseTable");
+
+  tbody.innerHTML = "";
+
+  if(expenses.length === 0){
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4"
+            class="text-center">
+          No expenses found
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  expenses.forEach(expense => {
+
+    tbody.innerHTML += `
+
+      <tr>
+
+        <td>
+          ₹${expense.amount}
+        </td>
+
+        <td>
+          ${expense.category}
+        </td>
+
+        <td>
+          ${expense.expense_date}
+        </td>
+
+        <td>
+          ${expense.note || "-"}
+        </td>
+
+      </tr>
+    `;
+  });
+}
+
+// LOAD SUMMARY
+async function loadSummary(){
+
+  const res =
+    await fetch("/api/expenses/summary");
+
+  const summary =
+    await res.json();
+
+  const box =
+    document.getElementById("summaryBox");
+
+  if(summary.length === 0){
+
+    box.innerHTML = `
+      <p>No expense analysis available</p>
+    `;
+
+    return;
+  }
+
+  let total = 0;
+
+  summary.forEach(item => {
+    total += Number(item.total);
+  });
+
+  let html = `
+
+    <div class="alert alert-primary">
+
+      <h5>
+        Total Expenses:
+        ₹${total.toFixed(2)}
+      </h5>
+
+    </div>
+
+    <div class="row">
+  `;
+
+  summary.forEach(item => {
+
+    html += `
+
+      <div class="col-md-4 mb-3">
+
+        <div class="summary-card">
+
+          <h5>
+            ${item.category}
+          </h5>
+
+          <h3>
+            ₹${Number(item.total).toFixed(2)}
+          </h3>
+
+        </div>
+
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  box.innerHTML = html;
+}
+
+// INITIAL LOAD
+loadExpenses();
+loadSummary();
+
+</script>
+
+</body>
+</html>

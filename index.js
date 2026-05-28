@@ -177,6 +177,30 @@ await pool.query(`
   ON CONFLICT (machine_id) DO NOTHING;
 `);
 
+//EXPENSES
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS expenses (
+
+    id SERIAL PRIMARY KEY,
+
+    customer_id INTEGER
+    REFERENCES customers(id)
+    ON DELETE CASCADE,
+
+    amount NUMERIC(10,2) NOT NULL,
+
+    category TEXT,
+
+    note TEXT,
+
+    expense_date DATE NOT NULL,
+
+    created_at TIMESTAMP
+    DEFAULT CURRENT_TIMESTAMP
+
+  );
+`);
+
   console.log("✅ Database ready");
 }
 initDB();
@@ -566,7 +590,151 @@ app.post(
       });
     }
 });
+//===============================
+// EXPENSES API
+//===============================
 
+// ADD EXPENSES
+app.post(
+  "/api/expenses",
+  requireCustomer,
+  async (req, res) => {
+
+    try{
+
+      const {
+        amount,
+        category,
+        note,
+        expense_date
+      } = req.body;
+
+      if(!amount || !expense_date){
+
+        return res.status(400).json({
+          error:"Required fields missing"
+        });
+      }
+
+      await pool.query(
+        `INSERT INTO expenses
+        (
+          customer_id,
+          amount,
+          category,
+          note,
+          expense_date
+        )
+
+        VALUES ($1,$2,$3,$4,$5)`,
+
+        [
+          req.session.customerId,
+          amount,
+          category,
+          note,
+          expense_date
+        ]
+      );
+
+      res.json({
+        success:true
+      });
+
+    }catch(err){
+
+      console.error(err);
+
+      res.status(500).json({
+        error:"Failed to add expense"
+      });
+    }
+});
+
+//GET CUSTOMERS EXPENSES
+app.get(
+  "/api/expenses",
+  requireCustomer,
+  async (req, res) => {
+
+    try{
+
+      const result = await pool.query(
+
+        `SELECT *
+         FROM expenses
+
+         WHERE customer_id=$1
+
+         ORDER BY expense_date DESC`,
+
+        [req.session.customerId]
+      );
+
+      res.json(result.rows);
+
+    }catch(err){
+
+      console.error(err);
+
+      res.status(500).json({
+        error:"Failed to load expenses"
+      });
+    }
+});
+
+//MONTHLY EXPENSES
+app.get(
+  "/api/expenses/summary",
+  requireCustomer,
+  async (req, res) => {
+
+    try{
+
+      const result = await pool.query(
+
+        `SELECT
+
+          category,
+
+          SUM(amount) as total
+
+         FROM expenses
+
+         WHERE customer_id=$1
+
+         GROUP BY category
+
+         ORDER BY total DESC`,
+
+        [req.session.customerId]
+      );
+
+      res.json(result.rows);
+
+    }catch(err){
+
+      console.error(err);
+
+      res.status(500).json({
+        error:"Failed to analyse expenses"
+      });
+    }
+});
+
+//EXPENSE
+app.get(
+  "/expenses",
+  requireCustomer,
+  (_, res) => {
+
+    res.sendFile(
+      path.join(
+        __dirname,
+        "public/expenses.html"
+      )
+    );
+});
 
 // ==========================
 // ADMIN APIs

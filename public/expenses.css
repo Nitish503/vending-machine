@@ -1,0 +1,120 @@
+/* =========================
+   BODY
+========================= */
+
+body{
+  background:#f4f6f9;
+  font-family:"Segoe UI", sans-serif;
+  min-height:100vh;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+
+.navbar{
+  background:linear-gradient(
+    90deg,
+    #0d6efd,
+    #6610f2
+  );
+}
+
+.navbar-brand{
+  font-size:1.3rem;
+}
+
+.nav-link{
+  color:white !important;
+  transition:0.3s;
+}
+
+.nav-link:hover{
+  opacity:0.8;
+}
+
+/* =========================
+   CARDS
+========================= */
+
+.expense-card{
+  border:none;
+  border-radius:20px;
+  overflow:hidden;
+  background:white;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* =========================
+   FORM
+========================= */
+
+.form-control,
+.form-select{
+  border-radius:12px;
+  padding:12px;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn-primary{
+  border-radius:12px;
+  padding:12px;
+  font-weight:600;
+}
+
+/* =========================
+   SUMMARY CARD
+========================= */
+
+.summary-card{
+  background:linear-gradient(
+    135deg,
+    #667eea,
+    #764ba2
+  );
+
+  color:white;
+
+  padding:20px;
+
+  border-radius:20px;
+
+  text-align:center;
+
+  box-shadow:0 8px 20px rgba(0,0,0,0.1);
+}
+
+.summary-card h5{
+  margin-bottom:10px;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table{
+  background:white;
+}
+
+.table th{
+  white-space:nowrap;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:768px){
+
+  .summary-card{
+    margin-bottom:15px;
+  }
+
+  .navbar-brand{
+    font-size:1.1rem;
+  }
+
+}
