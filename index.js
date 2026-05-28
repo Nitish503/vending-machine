@@ -501,6 +501,71 @@ app.put(
       });
     }
 });
+//===========================
+//ADD MACHINES API
+//===========================
+app.post(
+  "/api/machines",
+  requireAdmin,
+  async (req, res) => {
+
+    try{
+
+      const {
+        machine_id,
+        name,
+        location,
+        status
+      } = req.body;
+
+      if(
+        !machine_id ||
+        !name
+      ){
+        return res.status(400).json({
+          error:"Required fields missing"
+        });
+      }
+
+      await pool.query(
+        `INSERT INTO machines
+        (
+          machine_id,
+          name,
+          location,
+          status
+        )
+
+        VALUES ($1,$2,$3,$4)`,
+
+        [
+          machine_id,
+          name,
+          location,
+          status || "offline"
+        ]
+      );
+
+      res.json({
+        success:true
+      });
+
+    }catch(err){
+
+      console.error(err);
+
+      if(err.code === "23505"){
+
+        return res.status(400).json({
+          error:"Machine ID already exists"
+        });
+      }
+
+      res.status(500).json({
+        error:"Failed to add machine"
+      });
+    }
+});
 
 
 // ==========================

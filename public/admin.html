@@ -191,6 +191,79 @@ body { background:#f4f6f9; overflow-x:hidden; }
 
   <h3 class="mb-4">Machine Control</h3>
 
+  <div class="card mb-4">
+
+  <div class="card-body">
+
+    <h5 class="mb-3">Add New Machine</h5>
+
+    <div class="row g-2">
+
+      <div class="col-md-3">
+        <input
+          type="text"
+          id="newMachineId"
+          class="form-control"
+          placeholder="Machine ID"
+        >
+      </div>
+
+      <div class="col-md-3">
+        <input
+          type="text"
+          id="newMachineName"
+          class="form-control"
+          placeholder="Machine Name"
+        >
+      </div>
+
+      <div class="col-md-3">
+        <input
+          type="text"
+          id="newMachineLocation"
+          class="form-control"
+          placeholder="Location"
+        >
+      </div>
+
+      <div class="col-md-2">
+
+        <select
+          id="newMachineStatus"
+          class="form-select"
+        >
+
+          <option value="online">
+            Online
+          </option>
+
+          <option value="offline">
+            Offline
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="col-md-1">
+
+        <button
+          class="btn btn-success w-100"
+          onclick="addMachine()"
+        >
+
+          Add
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
   <div class="table-responsive">
 
     <table class="table table-bordered align-middle">
@@ -590,6 +663,66 @@ async function saveMachine(id){
   }else{
 
     alert(data.error || "Update failed");
+  }
+}
+
+//ADD MACHINES FUNCTION
+async function addMachine(){
+
+  const machine_id =
+    document.getElementById("newMachineId").value.trim();
+
+  const name =
+    document.getElementById("newMachineName").value.trim();
+
+  const location =
+    document.getElementById("newMachineLocation").value.trim();
+
+  const status =
+    document.getElementById("newMachineStatus").value;
+
+  if(
+    !machine_id ||
+    !name ||
+    !location
+  ){
+    alert("Fill all fields");
+    return;
+  }
+
+  const res = await fetch(
+    "/api/machines",
+    {
+      method:"POST",
+
+      headers:{
+        "Content-Type":"application/json"
+      },
+
+      body: JSON.stringify({
+        machine_id,
+        name,
+        location,
+        status
+      })
+    }
+  );
+
+  const data = await res.json();
+
+  if(data.success){
+
+    alert("Machine added");
+
+    document.getElementById("newMachineId").value = "";
+    document.getElementById("newMachineName").value = "";
+    document.getElementById("newMachineLocation").value = "";
+
+    loadMachines();
+
+  }else{
+
+    alert(data.error || "Failed");
   }
 }
 
