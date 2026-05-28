@@ -157,6 +157,25 @@ async function initDB() {
       first_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS machines (
+    id SERIAL PRIMARY KEY,
+    machine_id TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    location TEXT,
+    status TEXT DEFAULT 'online'
+  );
+`);
+
+// Default machines
+await pool.query(`
+  INSERT INTO machines (machine_id, name, location, status)
+  VALUES
+    ('VM001', 'Airport Machine', 'Airport Terminal 1', 'online'),
+    ('VM002', 'Railway Station', 'Platform No. 2', 'online'),
+    ('VM003', 'College Campus', 'Main Academic Block', 'offline')
+  ON CONFLICT (machine_id) DO NOTHING;
+`);
 
   console.log("✅ Database ready");
 }
@@ -406,6 +425,42 @@ app.post("/api/messages", async (req, res) => {
     res.status(500).json({ error: "Failed to send message" });
   }
 });
+
+//===========================
+// MACHINES LIST APIS
+//===========================
+app.get("/api/machines", async (req, res) => {
+
+  const result = await pool.query(
+    "SELECT * FROM machines ORDER BY id ASC"
+  );
+
+  res.json(result.rows);
+});
+
+//====================
+//ADMIN MACHINES SATATUS API
+//=====================
+app.post("/api/machines/:id/status",
+requireAdmin,
+async (req, res) => {
+
+  const { status } = req.body;
+
+  if (!["online", "offline"].includes(status)) {
+    return res.status(400).json({
+      error: "Invalid status"
+    });
+  }
+
+  await pool.query(
+    "UPDATE machines SET status=$1 WHERE id=$2",
+    [status, req.params.id]
+  );
+
+  res.json({ success: true });
+});
+
 
 // ==========================
 // ADMIN APIs

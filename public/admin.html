@@ -84,6 +84,9 @@ body { background:#f4f6f9; overflow-x:hidden; }
   <a href="#" onclick="showSection('payments')">Payments</a>
   <a href="#" onclick="showSection('messages')">Messages</a>
   <a href="#" onclick="showSection('reports')">Reports</a>
+  <a href="#" onclick="showSection('machines')">
+  Machines
+</a>
 
   <hr>
   <a href="/" class="text-warning">Home</a>
@@ -181,6 +184,32 @@ body { background:#f4f6f9; overflow-x:hidden; }
       <tbody id="messages"></tbody>
     </table>
   </div>
+</div>
+
+<!-- MACHINES -->
+<div id="machinesSection" class="section hidden">
+
+  <h3>Machine Control</h3>
+
+  <div class="table-responsive">
+
+    <table class="table table-bordered">
+
+      <thead class="table-light">
+        <tr>
+          <th>Machine</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="machinesTable"></tbody>
+
+    </table>
+
+  </div>
+
 </div>
 
 <!-- REPORTS -->
@@ -400,12 +429,102 @@ function showSection(section){
   alert("Reply sent");
   loadMessages();
 }
+// MACHINES 
+async function loadMachines(){
+
+  const res = await fetch("/api/machines");
+  const machines = await res.json();
+
+  const tbody =
+    document.getElementById("machinesTable");
+
+  tbody.innerHTML = "";
+
+  machines.forEach(machine => {
+
+    const online =
+      machine.status === "online";
+
+    tbody.innerHTML += `
+      <tr>
+
+        <td>${machine.name}</td>
+
+        <td>${machine.location}</td>
+
+        <td>
+
+          <span class="badge ${
+            online
+              ? "bg-success"
+              : "bg-danger"
+          }">
+
+            ${
+              online
+                ? "Online"
+                : "Offline"
+            }
+
+          </span>
+
+        </td>
+
+        <td>
+
+          <button
+            class="btn btn-sm ${
+              online
+                ? "btn-danger"
+                : "btn-success"
+            }"
+
+            onclick="
+              updateMachineStatus(
+                ${machine.id},
+                '${
+                  online
+                    ? "offline"
+                    : "online"
+                }'
+              )
+            "
+          >
+
+            ${
+              online
+                ? "Make Offline"
+                : "Make Online"
+            }
+
+          </button>
+
+        </td>
+
+      </tr>
+    `;
+  });
+}
+
+async function updateMachineStatus(id, status){
+
+  await fetch(`/api/machines/${id}/status`, {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ status })
+  });
+
+  loadMachines();
+}
 
   // INITIAL LOAD
   loadVisits();
   loadCustomers();
   loadPayments();
   loadMessages();
+  loadMachines();
 </script>
 
 </body>

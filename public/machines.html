@@ -11,12 +11,61 @@
 <!-- External CSS -->
 <link rel="stylesheet" href="/machine.css">
 
+<style>
+
+body{
+  background:#f4f6f9;
+}
+
+/* MACHINE CARD */
+.machine-card{
+  border:none;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  transition:0.3s ease;
+}
+
+.machine-card:hover{
+  transform:translateY(-5px);
+}
+
+.machine-img{
+  height:220px;
+  object-fit:cover;
+}
+
+.machine-info{
+  padding:20px;
+}
+
+/* STATUS */
+.status-online{
+  background:#198754;
+}
+
+.status-offline{
+  background:#dc3545;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  .machine-img{
+    height:180px;
+  }
+
+}
+
+</style>
+
 </head>
 
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+
   <div class="container-fluid">
 
     <a class="navbar-brand fw-bold" href="/">
@@ -27,7 +76,9 @@
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#mainNavbar">
+
       <span class="navbar-toggler-icon"></span>
+
     </button>
 
     <div class="collapse navbar-collapse justify-content-end"
@@ -36,7 +87,9 @@
       <ul class="navbar-nav">
 
         <li class="nav-item">
-          <a class="nav-link" href="/">🏠 Home</a>
+          <a class="nav-link" href="/">
+            🏠 Home
+          </a>
         </li>
 
         <li class="nav-item">
@@ -48,124 +101,30 @@
       </ul>
 
     </div>
+
   </div>
+
 </nav>
 
 <!-- PAGE -->
 <div class="container py-5">
 
   <div class="text-center mb-5">
-    <h2 class="fw-bold">🏪 Select a Vending Machine</h2>
-    <p>Select your nearest vending machine location</p>
+
+    <h2 class="fw-bold">
+      🏪 Select a Vending Machine
+    </h2>
+
+    <p class="text-muted">
+      Select your nearest vending machine location
+    </p>
+
   </div>
 
-  <div class="row g-4">
+  <!-- DYNAMIC MACHINES -->
+  <div class="row g-4" id="machinesContainer">
 
-    <!-- MACHINE 1 -->
-    <div class="col-md-4">
-      <div class="card machine-card h-100"
-           onclick="selectMachine('VM001','Airport')">
-
-        <img src="/images/vending1.jpeg"
-             class="machine-img w-100"
-             alt="Airport Machine">
-
-        <div class="card-body machine-info">
-
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="fw-bold">Airport Machine</h5>
-
-            <span class="badge status-online">
-              Online
-            </span>
-          </div>
-
-          <p class="mb-1">
-            📍 Airport Terminal 1
-          </p>
-
-          <p class="small opacity-75">
-            Machine ID: VM001
-          </p>
-
-          <button class="btn btn-light w-100 mt-2">
-            Select Machine
-          </button>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- MACHINE 2 -->
-    <div class="col-md-4">
-      <div class="card machine-card h-100"
-           onclick="selectMachine('VM002','Railway Station')">
-
-        <img src="/images/vending2.jpeg"
-             class="machine-img w-100"
-             alt="Railway Machine">
-
-        <div class="card-body machine-info">
-
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="fw-bold">Railway Station</h5>
-
-            <span class="badge status-online">
-              Online
-            </span>
-          </div>
-
-          <p class="mb-1">
-            📍 Platform No. 2
-          </p>
-
-          <p class="small opacity-75">
-            Machine ID: VM002
-          </p>
-
-          <button class="btn btn-light w-100 mt-2">
-            Select Machine
-          </button>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- MACHINE 3 -->
-    <div class="col-md-4">
-      <div class="card machine-card h-100"
-           onclick="selectMachine('VM003','College Campus')">
-
-        <img src="/images/vending3.jpeg"
-             class="machine-img w-100"
-             alt="College Machine">
-
-        <div class="card-body machine-info">
-
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="fw-bold">College Campus</h5>
-
-            <span class="badge status-offline">
-              Offline
-            </span>
-          </div>
-
-          <p class="mb-1">
-            📍 Main Academic Block
-          </p>
-
-          <p class="small opacity-75">
-            Machine ID: VM003
-          </p>
-
-          <button class="btn btn-secondary w-100 mt-2"
-                  disabled>
-            Currently Offline
-          </button>
-
-        </div>
-      </div>
-    </div>
+    <!-- Machines load dynamically here -->
 
   </div>
 
@@ -176,14 +135,153 @@
 
 <script>
 
-// Save selected machine
-function selectMachine(machineId, location){
+// LOAD MACHINES
+async function loadMachines(){
 
-  localStorage.setItem("machineId", machineId);
-  localStorage.setItem("machineLocation", location);
+  try{
+
+    const res = await fetch("/api/machines");
+
+    const machines = await res.json();
+
+    const container =
+      document.getElementById("machinesContainer");
+
+    container.innerHTML = "";
+
+    if(machines.length === 0){
+
+      container.innerHTML = `
+        <div class="col-12">
+          <div class="alert alert-warning text-center">
+            No machines available
+          </div>
+        </div>
+      `;
+
+      return;
+    }
+
+    machines.forEach(machine => {
+
+      const online =
+        machine.status === "online";
+
+      container.innerHTML += `
+
+        <div class="col-md-4">
+
+          <div class="card machine-card h-100">
+
+            <img
+              src="/images/vending1.jpeg"
+              class="machine-img w-100"
+              alt="${machine.name}"
+            >
+
+            <div class="card-body machine-info">
+
+              <div class="d-flex justify-content-between align-items-center mb-2">
+
+                <h5 class="fw-bold mb-0">
+                  ${machine.name}
+                </h5>
+
+                <span class="badge ${
+                  online
+                    ? "status-online"
+                    : "status-offline"
+                }">
+
+                  ${
+                    online
+                      ? "Online"
+                      : "Offline"
+                  }
+
+                </span>
+
+              </div>
+
+              <p class="mb-1">
+                📍 ${machine.location || "N/A"}
+              </p>
+
+              <p class="small text-muted">
+                Machine ID: ${machine.machine_id}
+              </p>
+
+              <button
+
+                class="btn ${
+                  online
+                    ? "btn-primary"
+                    : "btn-secondary"
+                } w-100 mt-2"
+
+                ${
+                  !online
+                    ? "disabled"
+                    : ""
+                }
+
+                onclick="
+                  selectMachine(
+                    '${machine.machine_id}',
+                    '${machine.name}'
+                  )
+                "
+              >
+
+                ${
+                  online
+                    ? "Select Machine"
+                    : "Currently Offline"
+                }
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      `;
+    });
+
+  }catch(err){
+
+    console.error(err);
+
+    document.getElementById("machinesContainer")
+      .innerHTML = `
+        <div class="col-12">
+          <div class="alert alert-danger text-center">
+            Failed to load machines
+          </div>
+        </div>
+      `;
+  }
+}
+
+// SELECT MACHINE
+function selectMachine(machineId, machineName){
+
+  localStorage.setItem(
+    "machineId",
+    machineId
+  );
+
+  localStorage.setItem(
+    "machineName",
+    machineName
+  );
 
   window.location.href = "/products";
 }
+
+// INITIAL LOAD
+loadMachines();
 
 </script>
 

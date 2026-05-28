@@ -1,56 +1,146 @@
+/* =========================
+   BODY
+========================= */
+
 body{
+  background:#f4f6f9;
+  font-family:"Segoe UI", sans-serif;
   min-height:100vh;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color:white;
 }
 
-/* Navbar */
+/* =========================
+   NAVBAR
+========================= */
+
 .navbar{
-  background: linear-gradient(90deg, #0d6efd, #6610f2);
+  background:linear-gradient(
+    90deg,
+    #0d6efd,
+    #6610f2
+  );
 }
 
-/* Machine Card */
+.navbar-brand{
+  font-size:1.3rem;
+}
+
+.nav-link{
+  color:white !important;
+  transition:0.3s;
+}
+
+.nav-link:hover{
+  opacity:0.8;
+}
+
+/* =========================
+   PAGE TITLE
+========================= */
+
+.page-title{
+  font-weight:700;
+  color:#212529;
+}
+
+.page-subtitle{
+  color:#6c757d;
+}
+
+/* =========================
+   MACHINE CARD
+========================= */
+
 .machine-card{
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
-  border-radius:20px;
-  transition:0.3s ease;
-  cursor:pointer;
   border:none;
+  border-radius:20px;
   overflow:hidden;
-  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  background:white;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+  transition:0.3s ease;
 }
 
 .machine-card:hover{
-  transform: translateY(-6px);
-  box-shadow:0 18px 35px rgba(0,0,0,0.3);
+  transform:translateY(-6px);
+  box-shadow:0 15px 35px rgba(0,0,0,0.12);
 }
 
-/* Machine Image */
+/* =========================
+   MACHINE IMAGE
+========================= */
+
 .machine-img{
+  width:100%;
   height:220px;
   object-fit:cover;
 }
 
-/* Machine Info */
+/* =========================
+   MACHINE INFO
+========================= */
+
 .machine-info{
-  color:white;
+  padding:20px;
 }
 
-/* Status */
+.machine-info h5{
+  color:#212529;
+}
+
+.machine-info p{
+  margin-bottom:8px;
+  color:#495057;
+}
+
+/* =========================
+   STATUS BADGES
+========================= */
+
 .status-online{
   background:#198754;
+  color:white;
+  padding:7px 12px;
+  border-radius:20px;
+  font-size:0.8rem;
 }
 
 .status-offline{
   background:#dc3545;
+  color:white;
+  padding:7px 12px;
+  border-radius:20px;
+  font-size:0.8rem;
 }
 
-/* Responsive */
+/* =========================
+   BUTTONS
+========================= */
+
+.btn-primary{
+  border-radius:12px;
+  font-weight:600;
+}
+
+.btn-secondary{
+  border-radius:12px;
+  font-weight:600;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
 @media(max-width:768px){
 
   .machine-img{
     height:180px;
+  }
+
+  .machine-info{
+    padding:16px;
+  }
+
+  .navbar-brand{
+    font-size:1.1rem;
   }
 
 }
